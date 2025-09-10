@@ -32,7 +32,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/army-saved/:listIndex" element={<ArmyBuilder saved />} />
+        <Route path="/army-saved/:listIndex" element={<ArmyBuilder saved={true} />} />
         <Route
           path="/"
           element={

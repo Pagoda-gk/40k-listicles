@@ -1,15 +1,21 @@
 // src/data/referenceRegistry.js
 import { gameRules } from "./gameRules";
 
-export function buildReferenceRegistry({ rules, wargear, units }) {
-  // Ensure everything has a type field for clarity
+export function buildReferenceRegistry({ rules, wargear, units, conditionals }) {
   const normalize = (items, type) =>
-    items.map((item) => ({ ...item, _type: type }));
+    (items || []).map((item) => ({ ...item, _type: type }));
 
-  return [
+  const allItems = [
     ...normalize(gameRules, "gameRule"),
     ...normalize(rules || [], "rule"),
     ...normalize(wargear || [], "wargear"),
     ...normalize(units || [], "unit"),
+    ...normalize(conditionals || [], "conditional"),
   ];
+
+  // Convert array to lookup object
+  return allItems.reduce((acc, item) => {
+    acc[item.name] = item;
+    return acc;
+  }, {});
 }

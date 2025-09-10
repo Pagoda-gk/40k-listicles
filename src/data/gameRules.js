@@ -8,5 +8,9 @@ export const gameRules = [
     name: "Deep Strike",
     description: "Units with this ability may arrive via deep strike."
   },
+  {
+    name: "Pistol",
+    description: "Pistol rules"
+  }
   // add more core rules here
 ];

@@ -6,9 +6,69 @@ import "./App.css";
 import { buildReferenceRegistry } from "./data/referenceRegistry";
 import { Link } from "react-router-dom";
 import { useSwipeable } from "react-swipeable";
+import ReactMarkdown from "react-markdown";
 import React from "react";
+import { renderWithReferences } from "./utils/referenceRenderer.jsx";
+
 
 export default function ArmyBuilder({ saved }) {
+
+    function computeAvailableUpgrades(unit) {
+        let available = [...unit.upgrades];
+
+        // Apply conditional effects from chosen upgrades
+        unit.chosenUpgrades.forEach(sel => {
+            if (unit.conditionalEffects) {
+                unit.conditionalEffects.forEach(effect => {
+                    if (effect.triggerUpgrade === sel.name) {
+                        // Unlock additional upgrades
+                        if (effect.effects.unlockUpgrades) {
+                            available = [...available, ...effect.effects.unlockUpgrades];
+                        }
+                    }
+                });
+            }
+        });
+
+        return available;
+    }
+
+    function computeAvailableWargear(unit) {
+        let wargear = [...unit.wargear];
+
+        unit.chosenUpgrades.forEach(sel => {
+            if (unit.conditionalEffects) {
+                unit.conditionalEffects.forEach(effect => {
+                    if (effect.triggerUpgrade === sel.name && effect.effects.unlockWargear) {
+                        wargear = [...wargear, ...effect.effects.unlockWargear];
+                    }
+                });
+            }
+        });
+
+        return wargear;
+    }
+
+    function applyArmyConditionals(units, chosenUnits, conditionals = []) {
+        let modifiedUnits = units.map(u => ({ ...u }));
+
+        conditionals.forEach(rule => {
+            const triggerActive = chosenUnits.some(cu => cu.name === rule.triggerUnit);
+            if (triggerActive) {
+                rule.effects.forEach(effect => {
+                    modifiedUnits = modifiedUnits.map(u => {
+                        if (u.name === effect.target) {
+                            return { ...u, ...effect.changes };
+                        }
+                        return u;
+                    });
+                });
+            }
+        });
+
+        return modifiedUnits;
+    }
+
     const { factionId, listIndex } = useParams();
 
 
@@ -51,6 +111,12 @@ export default function ArmyBuilder({ saved }) {
 
     const openRuleModal = (rule) => setModalRule(rule);
     const closeRuleModal = () => setModalRule(null);
+
+    const effectiveUnits = applyArmyConditionals(
+        Object.values(registry).filter(item => item._type === "unit"),
+        army,
+        Object.values(registry).filter(item => item._type === "conditional"),
+    );
 
 
 
@@ -197,6 +263,11 @@ export default function ArmyBuilder({ saved }) {
         );
     }
 
+    const conditionals = Object.values(registry).filter(item => item._type === "conditional");
+
+    // Derived army with conditionals applied
+    const effectiveArmy = applyArmyConditionals(army, army, conditionals);
+
 
     return (
         <div
@@ -250,8 +321,17 @@ export default function ArmyBuilder({ saved }) {
             </button>
 
 
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "row", // horizontal layout
+                    gap: "1rem",          // optional spacing between panels
+                    height: "100%",        // fill parent height
+                    overflowX: "auto",    // scroll if panels overflow
+                    boxSizing: "border-box",
+                }}
+            >
 
-            <ArmyBuilderSwipeWrapper>
                 {/* Left Panel */}
                 <div className="panel">
                     <h2>Units</h2>
@@ -282,8 +362,10 @@ export default function ArmyBuilder({ saved }) {
                 <div className="panel">
                     <h2>Army List</h2>
                     {categories.map((cat) => {
-                        const unitsInCat = army.filter((u) => u.category === cat);
+                        const unitsInCat = effectiveArmy.filter(u => u.category === cat);
                         if (!unitsInCat.length) return null;
+
+
 
                         return (
                             <div key={cat} className="category-section">
@@ -363,142 +445,75 @@ export default function ArmyBuilder({ saved }) {
                                                 <>
                                                     <h4>Rules:</h4>
                                                     <div style={{ display: "inline" }}>
-                                                        {u.rules.map((ruleName, i) => {
-                                                            const rule = getRule(ruleName);
-                                                            return (
-                                                                <span key={ruleName} style={{ whiteSpace: "nowrap" }}>
-                                                                    <button
-                                                                        onClick={() => openRuleModal(rule)}
-                                                                        style={{
-                                                                            cursor: "pointer",
-                                                                            color: "#0ff",
-                                                                            background: "transparent",
-                                                                            border: "none",
-                                                                            padding: 0,
-                                                                            margin: 0,
-                                                                        }}
-                                                                    >
-                                                                        {rule ? rule.name : ruleName}
-                                                                    </button>
-                                                                    {i < u.rules.length - 1 && ", "}
-                                                                </span>
-                                                            );
-                                                        })}
+                                                        {renderWithReferences(u.rules.join(", "), registry, openRuleModal)}
                                                     </div>
                                                 </>
                                             )}
-
                                             {/* Wargear */}
                                             {u.wargear?.length > 0 && (
                                                 <>
                                                     <h4>Wargear:</h4>
                                                     <div style={{ display: "inline" }}>
-                                                        {Object.entries(u.wargearCounts).map(([gearName, count], i, arr) => {
-                                                            const gear = getWargear(gearName);
-                                                            return (
-                                                                <span key={gearName} style={{ whiteSpace: "nowrap" }}>
-                                                                    <button
-                                                                        onClick={() => gear && openRuleModal(gear)}
-                                                                        style={{
-                                                                            cursor: "pointer",
-                                                                            color: "#0ff",
-                                                                            background: "transparent",
-                                                                            border: "none",
-                                                                            padding: 0,
-                                                                            margin: 0,
-                                                                        }}
-                                                                    >
-                                                                        {gear ? gear.name : gearName}
-                                                                        {count > 1 ? ` x${count}` : ""}
-                                                                    </button>
-                                                                    {i < arr.length - 1 && ", "}
-                                                                </span>
-                                                            );
-                                                        })}
+                                                        {renderWithReferences(
+                                                            Object.entries(u.wargearCounts)
+                                                                .map(([gearName, count]) =>
+                                                                    count > 1 ? `${gearName} x${count}` : gearName
+                                                                )
+                                                                .join(", "),
+                                                            registry,
+                                                            openRuleModal
+                                                        )}
                                                     </div>
                                                 </>
                                             )}
 
+
+
                                             {/* Upgrades */}
                                             <h4>Options:</h4>
                                             <div className="upgrade-list">
-                                                {u.upgrades?.map((up) => {
-                                                    const current = u.chosenUpgrades.find(
-                                                        (sel) => sel.name === up.name
-                                                    );
+                                                {computeAvailableUpgrades(effectiveArmy.find(eu => eu.id === u.id) || u).map((up) => {
+                                                    const current = u.chosenUpgrades.find(sel => sel.name === up.name);
                                                     const value = current ? current.count : 0;
 
-                                                    // Try to find wargear with the same name
-                                                    const gear = wargear.find((w) => w.name === up.name);
+                                                    return (
+                                                        <div key={up.name} className="upgrade-option">
+                                                            {up.type === "single" && (
+                                                                <>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={!!value}
+                                                                        onChange={() => toggleUpgrade(u.id, { ...up, count: value ? 0 : 1 })}
+                                                                    />
+                                                                    {renderWithReferences(up.name, registry, openRuleModal)} (+{up.points} pts)
+                                                                </>
+                                                            )}
 
-                                                    // A helper button that opens modal if gear exists
-                                                    const clickableName = gear ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openRuleModal(gear)}
-                                                            style={{
-                                                                cursor: "pointer",
-                                                                color: "#0ff",
-                                                                background: "transparent",
-                                                                border: "none",
-                                                                marginLeft: "0.5rem",
-                                                            }}
-                                                        >
-                                                            {up.name}
-                                                        </button>
-                                                    ) : (
-                                                        <span style={{ marginLeft: "0.5rem" }}>{up.name}</span>
+                                                            {up.type === "limited" && (
+                                                                <>
+                                                                    {renderWithReferences(up.name, registry, openRuleModal)} (+{up.points} pts each)
+                                                                    <input
+                                                                        type="number"
+                                                                        min={0}
+                                                                        max={up.maxPer}
+                                                                        value={value}
+                                                                        onChange={(e) => toggleUpgrade(u.id, { ...up, count: Number(e.target.value) })}
+                                                                    />
+                                                                </>
+                                                            )}
+
+                                                            {up.type === "perModel" && (
+                                                                <>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={!!value}
+                                                                        onChange={() => toggleUpgrade(u.id, { ...up, count: value ? 0 : 1 })}
+                                                                    />
+                                                                    {renderWithReferences(up.name, registry, openRuleModal)} (+{up.points} pts per model)
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     );
-
-                                                    if (up.type === "single") {
-                                                        return (
-                                                            <div key={up.name} className="upgrade-option">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={!!value}
-                                                                    onChange={() =>
-                                                                        toggleUpgrade(u.id, { ...up, count: value ? 0 : 1 })
-                                                                    }
-                                                                />
-                                                                {clickableName} (+{up.points} pts)
-                                                            </div>
-                                                        );
-                                                    }
-
-                                                    if (up.type === "limited") {
-                                                        return (
-                                                            <div key={up.name} className="upgrade-option">
-                                                                {clickableName} (+{up.points} pts each){" "}
-                                                                <input
-                                                                    type="number"
-                                                                    min={0}
-                                                                    max={up.maxPer}
-                                                                    value={value}
-                                                                    onChange={(e) =>
-                                                                        toggleUpgrade(u.id, { ...up, count: Number(e.target.value) })
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        );
-                                                    }
-
-                                                    if (up.type === "perModel") {
-                                                        const isSelected = !!current;
-                                                        return (
-                                                            <div key={up.name} className="upgrade-option">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={isSelected}
-                                                                    onChange={() =>
-                                                                        toggleUpgrade(u.id, { ...up, count: isSelected ? 0 : 1 })
-                                                                    }
-                                                                />
-                                                                {clickableName} (+{up.points} pts per model)
-                                                            </div>
-                                                        );
-                                                    }
-
-                                                    return null;
                                                 })}
                                             </div>
 
@@ -530,8 +545,7 @@ export default function ArmyBuilder({ saved }) {
                 <div className="panel">
                     <h2>Army Reference</h2>
                     {categories.map((cat) => {
-                        const catUnits = army.filter((u) => u.category === cat);
-                        if (!catUnits.length) return null;
+                        const catUnits = effectiveArmy.filter((u) => u.category === cat); if (!catUnits.length) return null;
 
                         return (
                             <div key={cat} style={{ marginBottom: "1rem" }}>
@@ -594,20 +608,7 @@ export default function ArmyBuilder({ saved }) {
                                                 <>
                                                     <h4>Rules:</h4>
                                                     <div style={{ display: "inline" }}>
-                                                        {u.rules.map((ruleName, i) => {
-                                                            const rule = getRule(ruleName);
-                                                            return (
-                                                                <span key={ruleName} style={{ whiteSpace: "nowrap" }}>
-                                                                    <button
-                                                                        onClick={() => openRuleModal(rule)}
-                                                                        style={{ cursor: "pointer", color: "#0ff", background: "transparent", border: "none", padding: 0, margin: 0 }}
-                                                                    >
-                                                                        {rule ? rule.name : ruleName}
-                                                                    </button>
-                                                                    {i < u.rules.length - 1 && ", "}
-                                                                </span>
-                                                            );
-                                                        })}
+                                                        {renderWithReferences(u.rules.join(", "), registry, openRuleModal)}
                                                     </div>
                                                 </>
                                             )}
@@ -617,22 +618,14 @@ export default function ArmyBuilder({ saved }) {
                                                 <>
                                                     <h4>Wargear:</h4>
                                                     <div style={{ display: "inline" }}>
-                                                        {baseGear.map((gearName, i) => {
-                                                            const count = u.wargearCounts[gearName] || 1;
-                                                            const gear = getWargear(gearName);
-                                                            return (
-                                                                <span key={gearName} style={{ whiteSpace: "nowrap" }}>
-                                                                    <button
-                                                                        onClick={() => gear && openRuleModal(gear)}
-                                                                        style={{ cursor: "pointer", color: "#0ff", background: "transparent", border: "none", padding: 0, margin: 0 }}
-                                                                    >
-                                                                        {gear ? gear.name : gearName}
-                                                                        {count > 1 ? ` x${count}` : ""}
-                                                                    </button>
-                                                                    {i < baseGear.length - 1 && ", "}
-                                                                </span>
-                                                            );
-                                                        })}
+                                                        {renderWithReferences(
+                                                            baseGear.map((name) => {
+                                                                const count = u.wargearCounts[name] || 1;
+                                                                return count > 1 ? `${name} x${count}` : name;
+                                                            }).join(", "),
+                                                            registry,
+                                                            openRuleModal
+                                                        )}
                                                     </div>
                                                 </>
                                             )}
@@ -642,24 +635,17 @@ export default function ArmyBuilder({ saved }) {
                                                 <>
                                                     <h4>Upgrade Wargear:</h4>
                                                     <div style={{ display: "inline" }}>
-                                                        {upgradeGear.map(([gearName, count], i) => {
-                                                            const gear = getWargear(gearName);
-                                                            return (
-                                                                <span key={gearName} style={{ whiteSpace: "nowrap" }}>
-                                                                    <button
-                                                                        onClick={() => gear && openRuleModal(gear)}
-                                                                        style={{ cursor: "pointer", color: "#0ff", background: "transparent", border: "none", padding: 0, margin: 0 }}
-                                                                    >
-                                                                        {gear ? gear.name : gearName}
-                                                                        {count > 1 ? ` x${count}` : ""}
-                                                                    </button>
-                                                                    {i < upgradeGear.length - 1 && ", "}
-                                                                </span>
-                                                            );
-                                                        })}
+                                                        {renderWithReferences(
+                                                            upgradeGear.map(([name, count]) =>
+                                                                count > 1 ? `[${name}] x${count}` : `[${name}]`
+                                                            ).join(", "),
+                                                            registry,
+                                                            openRuleModal
+                                                        )}
                                                     </div>
                                                 </>
                                             )}
+
 
                                         </div>
                                     );
@@ -668,8 +654,8 @@ export default function ArmyBuilder({ saved }) {
                         );
                     })}
                 </div>
-            </ArmyBuilderSwipeWrapper>
 
+            </div>
 
 
             {/* Save Dialog */}

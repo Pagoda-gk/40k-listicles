@@ -134,3 +134,21 @@ body {
 .read-the-docs {
   color: #888;
 }
+
+
+/* style for the reference links */
+.ref-link {
+  cursor: pointer;
+  color: #0ff;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-decoration: underline; /* optional */
+}
+.missing-ref {
+  color: #f88;
+  font-style: italic;
+}
+

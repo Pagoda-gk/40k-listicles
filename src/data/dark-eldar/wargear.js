@@ -34,7 +34,7 @@ export const wargear = [
   },
       {
     name: "Splinter Pistol",
-    description: "12\" Str 3, AP 5, Pistol.",
+    description: "12\" Str 3, AP 5, [Pistol].",
     cost: 1,
   },
       {

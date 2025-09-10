@@ -33,7 +33,7 @@ export const units = [
         ],
 
     },
-     {
+    {
         name: "Wych Lord",
         category: "HQ",
         basePoints: 60,
@@ -107,6 +107,18 @@ export const units = [
             { type: "perModel", name: "[Plasma Grenades]", points: 1 },
             { type: "perModel", name: "[Wych Weapons]", points: 1 },
         ],
+        conditionalEffects: [
+            {
+                // Triggered by selecting this upgrade
+                triggerUpgrade: "[Succubus]",
+                effects: {
+                  //  unlockWargear: ["[Agonizer]", "[Wych Blade]"], // extra wargear options
+                    unlockUpgrades: [
+                        { type: "perModel", name: "[Special Wych Weapon]", points: 3 },
+                    ],
+                },
+            },
+        ],
     },
 
     {
@@ -128,7 +140,7 @@ export const units = [
                 Ld: 8,
                 Sv: "6+",
             },
-                        {
+            {
                 name: "Sybarite",
                 WS: 4,
                 BS: 4,
