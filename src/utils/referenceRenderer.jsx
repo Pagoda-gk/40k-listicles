@@ -28,7 +28,7 @@ export function renderWithReferences(text, registry, onSelectRule) {
       parts.push(
         <span
           key={lastIndex}
-          style={{ color: "#0ff", textDecoration: "underline", cursor: "pointer" }}
+          className="ref-link"
           onClick={() => onSelectRule(ref)}
         >
           {name}

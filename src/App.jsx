@@ -1,7 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import React from 'react';
 import factions from "./data/factions";
 import ArmyBuilder from "./ArmyBuilder";
+import './index.css';
+
+
 
 export default function App() {
   const [openSections, setOpenSections] = useState([]);
@@ -36,10 +40,11 @@ export default function App() {
         <Route
           path="/"
           element={
-            <div style={{ padding: "2rem" }}>
+            <div className="landing-container">
               <h1>Systems</h1>
 
-              <div style={{ marginBottom: "2rem" }}>
+              {/* Saved Lists */}
+              <div className="saved-lists">
                 <h2>Saved Lists</h2>
                 {savedLists.length === 0 ? (
                   <p>No saved lists</p>
@@ -56,22 +61,25 @@ export default function App() {
                   </ul>
                 )}
               </div>
+
+
               {sortedSectionKeys.map((sectionName) => {
                 const sectionFactions = grouped[sectionName];
                 const isOpen = openSections.includes(sectionName);
                 return (
-                  <div key={sectionName} style={{ marginBottom: "1rem" }}>
+                  <div key={sectionName} className="section-container">
                     <h2
-                      style={{ cursor: "pointer" }}
+                      sclassName="section-header"
                       onClick={() => toggleSection(sectionName)}
                     >
                       {sectionName} {isOpen ? "▼" : "▶"}
                     </h2>
                     {isOpen && (
-                      <ul>
+                      <ul className="faction-list">
                         {sectionFactions.map((f) => (
                           <li key={f.id}>
-                            <Link to={`/army/${f.id}`}>{f.name}</Link>
+                            <Link to={`/army/${f.id}`} className="faction-link">
+                            {f.name}</Link>
                           </li>
                         ))}
                       </ul>
