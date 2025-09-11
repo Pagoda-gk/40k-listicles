@@ -85,6 +85,7 @@ a:hover {
    Panels & Layout
    ========================= */
 #root {
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
@@ -111,7 +112,7 @@ a:hover {
 
 @media (max-width: 768px) {
   .panel {
-    flex: 0 0 100vw;
+    flex: 0 0 100%;
     scroll-snap-align: start;
   }
 }
@@ -270,6 +271,12 @@ button:hover,
    Responsive Adjustments
    ========================= */
 @media (max-width: 768px) {
+  #root {
+    max-width: 100%;
+    /* no artificial width cap on phones */
+    padding: 1rem;
+  }
+
   .unit-list {
     gap: 0.25rem;
   }
@@ -411,7 +418,7 @@ button:hover,
   border-radius: var(--border-radius);
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .modal-title {
@@ -448,8 +455,9 @@ button:hover,
   text-decoration: underline dotted !important;
   text-underline-offset: 2px;
 }
+
 .army-panel a:hover,
 .army-panel a:focus {
   color: #000 !important;
-  background-color: rgba(0,0,0,0.05);
+  background-color: rgba(0, 0, 0, 0.05);
 }

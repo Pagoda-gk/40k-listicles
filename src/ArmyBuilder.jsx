@@ -224,12 +224,18 @@ export default function ArmyBuilder({ saved }) {
         ? units.map((u) => activeModifier.modifyUnitType(u))
         : units;
 
+    const handlers = useSwipeable({
+        onSwipedLeft: () => setPanel('next'),
+        onSwipedRight: () => setPanel('prev'),
+        delta: 50,                 // default is 10px; bigger = less sensitive
+        preventScrollOnSwipe: true
+    });
 
 
 
 
     return (
-        <div className="army-panels-container">
+        <div className="army-panels-container" {...handlers}>
 
 
             {/* Home and save button */}
