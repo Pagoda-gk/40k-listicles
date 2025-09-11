@@ -308,16 +308,18 @@ export default function ArmyBuilder({ saved }) {
                                         {u.statline && Array.isArray(u.statline) && (
                                             <table className="unit-table">
                                                 <thead>
-                                                    <th>Name</th>
-                                                    <th>WS</th>
-                                                    <th>BS</th>
-                                                    <th>S</th>
-                                                    <th>T</th>
-                                                    <th>W</th>
-                                                    <th>I</th>
-                                                    <th>A</th>
-                                                    <th>Ld</th>
-                                                    <th>Sv</th>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>WS</th>
+                                                        <th>BS</th>
+                                                        <th>S</th>
+                                                        <th>T</th>
+                                                        <th>W</th>
+                                                        <th>I</th>
+                                                        <th>A</th>
+                                                        <th>Ld</th>
+                                                        <th>Sv</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
                                                     {u.statline.map((profile, i) => (
@@ -446,17 +448,18 @@ export default function ArmyBuilder({ saved }) {
                                         {u.statline && Array.isArray(u.statline) && (
                                             <table className="unit-table">
                                                 <thead>
-                                                    <th>Name</th>
-                                                    <th>WS</th>
-                                                    <th>BS</th>
-                                                    <th>S</th>
-                                                    <th>T</th>
-                                                    <th>W</th>
-                                                    <th>I</th>
-                                                    <th>A</th>
-                                                    <th>Ld</th>
-                                                    <th>Sv</th>
-
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>WS</th>
+                                                        <th>BS</th>
+                                                        <th>S</th>
+                                                        <th>T</th>
+                                                        <th>W</th>
+                                                        <th>I</th>
+                                                        <th>A</th>
+                                                        <th>Ld</th>
+                                                        <th>Sv</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
                                                     {u.statline.map((profile, i) => (

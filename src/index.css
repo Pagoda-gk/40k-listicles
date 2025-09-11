@@ -26,6 +26,15 @@
   --transition-speed: 0.2s;
 }
 
+.unit-table th {
+  background: var(--panel-bg);
+  color: var(--text-color);
+  font-weight: bold;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+
 body {
   margin: 0;
   font-family: var(--font-family);
