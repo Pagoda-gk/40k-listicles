@@ -152,3 +152,8 @@ body {
   font-style: italic;
 }
 
+@media (max-width: 768px) {
+  .panel-nav-button {
+    display: none;
+  }
+}

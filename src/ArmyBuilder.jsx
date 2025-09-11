@@ -223,357 +223,392 @@ export default function ArmyBuilder({ saved }) {
         : units;
 
 
+    const [panelIndex, setPanelIndex] = useState(0); // 0 = left, 1 = middle, 2 = right
+
+    const swipeHandlers = useSwipeable({
+        onSwipedLeft: () => setPanelIndex((i) => Math.min(i + 1, 2)),
+        onSwipedRight: () => setPanelIndex((i) => Math.max(i - 1, 0)),
+        preventScrollOnSwipe: true,        // stops the browser from hijacking the swipe
+        trackMouse: true                   // allows click-and-drag on desktop for testing
+    });
+
+
 
     return (
         <div
+            {...swipeHandlers}
             style={{
-                padding: "1rem",
-                height: "100vh", // ensures swipe wrapper fills the viewport
-                boxSizing: "border-box",
+                height: "100vh",
+                overflow: "hidden",        // hide the off-screen panels
+                position: "relative"
             }}
         >
-
-            {/* Home button */}
-            <Link
-                to="/"
-                style={{
-                    position: "fixed",
-                    top: "1rem",
-                    left: "1rem",
-                    padding: "0.4rem 0.6rem",
-                    background: "#0ff",
-                    color: "#111",
-                    fontWeight: "bold",
-                    borderRadius: "5px",
-                    textDecoration: "none",
-                    zIndex: 1000, // ensures it stays above everything
-                    boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
-                    fontSize: "0.9rem",
-                }}
-            >
-                Home
-            </Link>
-
-
-            <button
-                onClick={() => setShowSaveDialog(true)}
-                style={{
-                    position: "fixed",
-                    top: "1rem",
-                    left: "5rem",
-                    padding: "0.4rem 0.6rem",
-                    background: "#0ff",
-                    color: "#111",
-                    fontWeight: "bold",
-                    borderRadius: "5px",
-                    zIndex: 1000,
-                    boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
-                    fontSize: "0.9rem",
-                    cursor: "pointer",
-                }}
-            >
-                Save
-            </button>
-
-
             <div
                 style={{
                     display: "flex",
-                    flexDirection: "row", // horizontal layout
-                    gap: "1rem",          // optional spacing between panels
-                    height: "100%",        // fill parent height
-                    overflowX: "auto",    // scroll if panels overflow
-                    boxSizing: "border-box",
+                    width: "300%",           // 3 panels
+                    transform: `translateX(-${panelIndex * 100}vw)`,
+                    transition: "transform 0.3s ease",
+                    height: "100%"
                 }}
             >
 
-                {/* Left Panel */}
-                <div className="panel">
-                    
-                    <h2>Units</h2>
-                    {categories.map((cat) => (
-                        <div key={cat}>
-                            <h3>{cat}</h3>
-                            <div className="unit-list">
-                                {units
-                                    .filter((u) => u.category === cat)
-                                    .map((u) => {
-                                        const full = categoryCounts[cat] >= limits[cat];
+
+
+                {/* Home button */}
+                <Link
+                    to="/"
+                    style={{
+                        position: "fixed",
+                        top: "1rem",
+                        left: "1rem",
+                        padding: "0.4rem 0.6rem",
+                        background: "#0ff",
+                        color: "#111",
+                        fontWeight: "bold",
+                        borderRadius: "5px",
+                        textDecoration: "none",
+                        zIndex: 1000, // ensures it stays above everything
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                        fontSize: "0.9rem",
+                    }}
+                >
+                    Home
+                </Link>
+
+
+                <button
+                    onClick={() => setShowSaveDialog(true)}
+                    style={{
+                        position: "fixed",
+                        top: "1rem",
+                        left: "5rem",
+                        padding: "0.4rem 0.6rem",
+                        background: "#0ff",
+                        color: "#111",
+                        fontWeight: "bold",
+                        borderRadius: "5px",
+                        zIndex: 1000,
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                        fontSize: "0.9rem",
+                        cursor: "pointer",
+                    }}
+                >
+                    Save
+                </button>
+
+
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row", // horizontal layout
+                        gap: "1rem",          // optional spacing between panels
+                        height: "100%",        // fill parent height
+                        overflowX: "auto",    // scroll if panels overflow
+                        boxSizing: "border-box",
+                    }}
+                >
+
+                    {/* Left Panel */}
+                    <div className="panel" style={{ width: "100vw", flexShrink: 0, overflowY: "auto" }}>
+                        <h2>Units</h2>
+                        {categories.map((cat) => (
+                            <div key={cat}>
+                                <h3>{cat}</h3>
+                                <div className="unit-list">
+                                    {units
+                                        .filter((u) => u.category === cat)
+                                        .map((u) => {
+                                            const full = categoryCounts[cat] >= limits[cat];
+                                            return (
+                                                <button
+                                                    key={u.name}
+                                                    onClick={() => addUnit(u)}
+                                                    className="unit-button"
+                                                    style={{
+                                                        opacity: full ? 0.4 : 1,
+                                                        pointerEvents: full ? "none" : "auto",
+                                                        cursor: full ? "not-allowed" : "pointer",
+                                                    }}
+                                                >
+                                                    {u.name} <span className="unit-points">({u.basePoints} pts)</span>
+                                                </button>
+                                            );
+                                        })}
+                                </div>
+                            </div>
+                        ))}
+
+                    </div>
+
+
+                    {/* Middle Panel */}
+                    <div className="panel" style={{ width: "100vw", flexShrink: 0, overflowY: "auto" }}>
+                        <h2>Army List</h2>
+                        {categories.map((cat) => {
+                            const unitsInCat = army.filter((u) =>
+                                u.category === cat);
+                            if (!unitsInCat.length) return null;
+
+                            return (
+                                <div key={cat} className="category-section">
+                                    <h3>{cat}</h3>
+                                    {unitsInCat.map((u) => {
+                                        const unitPoints =
+                                            u.basePoints * u.count +
+                                            u.chosenUpgrades.reduce((s, up) => {
+                                                if (up.type === "perModel") return s + u.count * up.points;
+                                                return s + up.points * (up.count || 1);
+                                            }, 0);
+
+
                                         return (
-                                            <button
-                                                key={u.name}
-                                                onClick={() => addUnit(u)}
-                                                className="unit-button"
-                                                style={{
-                                                    opacity: full ? 0.4 : 1,
-                                                    pointerEvents: full ? "none" : "auto",
-                                                    cursor: full ? "not-allowed" : "pointer",
-                                                }}
-                                            >
-                                                {u.name} <span className="unit-points">({u.basePoints} pts)</span>
-                                            </button>
+                                            <div key={u.id} className="unit-card">
+                                                <h4 style={{ cursor: "pointer" }}>
+                                                    {u.count}× {u.name} ({unitPoints} pts)
+                                                </h4>
+
+
+                                                {/* Statline */}
+                                                {u.statline && Array.isArray(u.statline) && (
+                                                    <table
+                                                        style={{
+                                                            width: "100%",
+                                                            borderCollapse: "collapse",
+                                                            marginTop: "0.25rem",
+                                                            fontSize: "0.8rem",
+                                                            textAlign: "center",
+                                                            lineHeight: "1.2",
+                                                        }}
+                                                    >
+                                                        <thead>
+                                                            <tr style={{ background: "#133", color: "#0ff" }}>
+                                                                <th style={{ padding: "2px 4px", textAlign: "left" }}>Unit</th>
+                                                                {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map((stat) => (
+                                                                    <th key={stat} style={{ padding: "2px 4px" }}>{stat}</th>
+                                                                ))}
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {u.statline.map((profile, i) => (
+                                                                <tr
+                                                                    key={i}
+                                                                    style={{
+                                                                        background: i % 2 === 0 ? "#111" : "#1a1a1a",
+                                                                        color: "#ddd",
+                                                                    }}
+                                                                >
+                                                                    <td style={{ padding: "2px 4px", textAlign: "left", color: "#0ff", fontWeight: "500", }}>
+                                                                        {profile.name}
+                                                                    </td>
+                                                                    {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map((stat) => (
+                                                                        <td key={stat} style={{ padding: "2px 4px" }}>
+                                                                            {profile[stat]}
+                                                                        </td>
+                                                                    ))}
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                )}
+
+
+                                                {/* Model Count */}
+                                                <input
+                                                    type="number"
+                                                    min={u.minModels}
+                                                    max={u.maxModels}
+                                                    value={u.count}
+                                                    onChange={(e) =>
+                                                        updateCount(u.id, Number(e.target.value))
+                                                    }
+                                                />
+
+                                                {/* Rules */}
+                                                {u.rules?.length > 0 && (
+                                                    <>
+                                                        <h4>Rules:</h4>
+
+                                                        {renderWithReferences(u.rules.join(", "), registry, openRuleModal)}
+                                                    </>
+                                                )}
+
+                                                {/* Wargear */}
+                                                {(u.wargear?.length || u.chosenUpgrades?.some(up => up.wargear)) > 0 && (
+                                                    <>
+                                                        <h4>Wargear:</h4>
+                                                        <div>
+                                                            {renderWithReferences(
+                                                                Array.from(
+                                                                    new Set([
+                                                                        ...(u.wargear || []),
+                                                                        ...(u.chosenUpgrades?.flatMap(up => up.wargear || []) || []),
+                                                                    ])
+                                                                ).join(", "),
+                                                                registry,
+                                                                openRuleModal)}
+                                                        </div>
+                                                    </>
+                                                )}
+
+
+                                                {/* Upgrades */}
+                                                <h4>Options:</h4>
+                                                <h4>Options:</h4>
+                                                <UpgradeOptions
+                                                    unit={u}
+                                                    upgrades={u.upgrades || []}
+                                                    onToggle={toggleUpgrade}
+                                                    registry={registry}
+                                                    openRuleModal={openRuleModal}
+                                                />
+
+
+                                                {/* Action Buttons */}
+                                                <div className="unit-actions">
+                                                    <button onClick={() => resetUnit(u.id)}>Reset</button>
+                                                    <button onClick={() => removeUnit(u.id)}>Remove</button>
+                                                </div>
+                                            </div>
                                         );
                                     })}
-                            </div>
-                        </div>
-                    ))}
+                                </div>
+                            );
+                        })}
 
-                </div>
+                        <h3>Total: {totalPoints} pts</h3>
+                    </div>
+
+                    {/* Right Panel */}
+                    <div className="panel" style={{ width: "100vw", flexShrink: 0, overflowY: "auto" }}>
+                        <h2>Army Reference</h2>
+
+                        {categories.map((cat) => {
+                            const catUnits = army.filter((u) =>
+                                u.category === cat);
+                            if (!catUnits.length) return null;
+                            return (
+                                <div key={cat} style={{
+                                    marginBottom:
+                                        "1rem"
+                                }}>
+                                    <h3>{cat}</h3>
+                                    {catUnits.map((u) => {
+
+                                        // Base wargear as before
+                                        const baseGear = u.wargear || [];
+
+                                        // Add upgrades’ wargear, but for limited ones include “ xN” if N>1
+                                        const upgradeGear = (u.chosenUpgrades || []).flatMap(up => {
+                                            const names = up.wargear || [];
+                                            // if it's a limited upgrade with count > 1, append " xN"
+                                            return names.map(name =>
+                                                up.type === "limited" && up.count > 1
+                                                    ? `${name} x${up.count}`
+                                                    : name
+                                            );
+                                        });
+
+                                        // Remove duplicates while preserving our xN text
+                                        const finalWargear = Array.from(new Set([...baseGear, ...upgradeGear]));
 
 
-                {/* Middle Panel */}
-                <div className="panel">
-                    <h2>Army List</h2>
-                    {categories.map((cat) => {
-                        const unitsInCat = army.filter((u) =>
-                            u.category === cat);
-                        if (!unitsInCat.length) return null;
+                                        return (
 
-                        return (
-                            <div key={cat} className="category-section">
-                                <h3>{cat}</h3>
-                                {unitsInCat.map((u) => {
-                                    const unitPoints =
-                                        u.basePoints * u.count +
-                                        u.chosenUpgrades.reduce((s, up) => {
-                                            if (up.type === "perModel") return s + u.count * up.points;
-                                            return s + up.points * (up.count || 1);
-                                        }, 0);
+                                            <div key={u.id} className="unit-card">
+                                                <h4>{u.count}× {u.name}</h4>
 
 
-                                    return (
-                                        <div key={u.id} className="unit-card">
-                                            <h4 style={{ cursor: "pointer" }}>
-                                                {u.count}× {u.name} ({unitPoints} pts)
-                                            </h4>
-
-
-                                            {/* Statline */}
-                                            {u.statline && Array.isArray(u.statline) && (
-                                                <table
-                                                    style={{
-                                                        width: "100%",
-                                                        borderCollapse: "collapse",
-                                                        marginTop: "0.25rem",
-                                                        fontSize: "0.8rem",
-                                                        textAlign: "center",
-                                                        lineHeight: "1.2",
-                                                    }}
-                                                >
-                                                    <thead>
-                                                        <tr style={{ background: "#133", color: "#0ff" }}>
-                                                            <th style={{ padding: "2px 4px", textAlign: "left" }}>Unit</th>
-                                                            {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map((stat) => (
-                                                                <th key={stat} style={{ padding: "2px 4px" }}>{stat}</th>
-                                                            ))}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {u.statline.map((profile, i) => (
-                                                            <tr
-                                                                key={i}
-                                                                style={{
-                                                                    background: i % 2 === 0 ? "#111" : "#1a1a1a",
-                                                                    color: "#ddd",
-                                                                }}
-                                                            >
-                                                                <td style={{ padding: "2px 4px", textAlign: "left", color: "#0ff", fontWeight: "500", }}>
-                                                                    {profile.name}
-                                                                </td>
+                                                {/* Statline */}
+                                                {u.statline && Array.isArray(u.statline) && (
+                                                    <table
+                                                        style={{
+                                                            width: "100%",
+                                                            borderCollapse: "collapse",
+                                                            marginTop: "0.25rem",
+                                                            fontSize: "0.8rem",
+                                                            textAlign: "center",
+                                                            lineHeight: "1.2",
+                                                        }}
+                                                    >
+                                                        <thead>
+                                                            <tr style={{ background: "#133", color: "#0ff" }}>
+                                                                <th style={{ padding: "2px 4px", textAlign: "left" }}>Unit</th>
                                                                 {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map((stat) => (
-                                                                    <td key={stat} style={{ padding: "2px 4px" }}>
-                                                                        {profile[stat]}
-                                                                    </td>
+                                                                    <th key={stat} style={{ padding: "2px 4px" }}>{stat}</th>
                                                                 ))}
                                                             </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            )}
+                                                        </thead>
+                                                        <tbody>
+                                                            {u.statline.map((profile, i) => (
+                                                                <tr
+                                                                    key={i}
+                                                                    style={{
+                                                                        background: i % 2 === 0 ? "#111" : "#1a1a1a",
+                                                                        color: "#ddd",
+                                                                    }}
+                                                                >
+                                                                    <td style={{ padding: "2px 4px", textAlign: "left", color: "#0ff", fontWeight: "500" }}>
+                                                                        {profile.name}
+                                                                    </td>
+                                                                    {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map((stat) => (
+                                                                        <td key={stat} style={{ padding: "2px 4px" }}>
+                                                                            {profile[stat]}
+                                                                        </td>
+                                                                    ))}
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                )}
+
+                                                {/* Rules */}
+                                                {u.rules?.length > 0 && (
+                                                    <>
+                                                        <h4>Rules:</h4>
+                                                        <div style={{
+                                                            display:
+                                                                "inline"
+                                                        }}>
+                                                            {renderWithReferences(u.rules.join(", "), registry,
+                                                                openRuleModal)}
+                                                        </div>
+                                                    </>
+                                                )}
+
+                                                {finalWargear.length > 0 && (
+                                                    <>
+                                                        <h4>Wargear:</h4>
+                                                        <div style={{ display: "inline" }}>
+                                                            {renderWithReferences(finalWargear.join(", "), registry, openRuleModal)}
+                                                        </div>
+                                                    </>
+                                                )}
 
 
-                                            {/* Model Count */}
-                                            <input
-                                                type="number"
-                                                min={u.minModels}
-                                                max={u.maxModels}
-                                                value={u.count}
-                                                onChange={(e) =>
-                                                    updateCount(u.id, Number(e.target.value))
-                                                }
-                                            />
-
-                                            {/* Rules */}
-                                            {u.rules?.length > 0 && (
-                                                <>
-                                                    <h4>Rules:</h4>
-
-                                                    {renderWithReferences(u.rules.join(", "), registry, openRuleModal)}
-                                                </>
-                                            )}
-
-                                            {/* Wargear */}
-                                            {(u.wargear?.length || u.chosenUpgrades?.some(up => up.wargear)) > 0 && (
-                                                <>
-                                                    <h4>Wargear:</h4>
-                                                    <div>
-                                                        {renderWithReferences(
-                                                            Array.from(
-                                                                new Set([
-                                                                    ...(u.wargear || []),
-                                                                    ...(u.chosenUpgrades?.flatMap(up => up.wargear || []) || []),
-                                                                ])
-                                                            ).join(", "),
-                                                            registry,
-                                                            openRuleModal)}
-                                                    </div>
-                                                </>
-                                            )}
-
-
-                                            {/* Upgrades */}
-                                            <h4>Options:</h4>
-                                            <h4>Options:</h4>
-                                            <UpgradeOptions
-                                                unit={u}
-                                                upgrades={u.upgrades || []}
-                                                onToggle={toggleUpgrade}
-                                                registry={registry}
-                                                openRuleModal={openRuleModal}
-                                            />
-
-
-                                            {/* Action Buttons */}
-                                            <div className="unit-actions">
-                                                <button onClick={() => resetUnit(u.id)}>Reset</button>
-                                                <button onClick={() => removeUnit(u.id)}>Remove</button>
                                             </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        );
-                    })}
+                                        )
 
-                    <h3>Total: {totalPoints} pts</h3>
-                </div>
-
-                {/* Right Panel */}
-                <div className="panel">
-                    <h2>Army Reference</h2>
-
-                    {categories.map((cat) => {
-                        const catUnits = army.filter((u) =>
-                            u.category === cat);
-                        if (!catUnits.length) return null;
-                        return (
-                            <div key={cat} style={{
-                                marginBottom:
-                                    "1rem"
-                            }}>
-                                <h3>{cat}</h3>
-                                {catUnits.map((u) => {
-
-                                    // Base wargear as before
-                                    const baseGear = u.wargear || [];
-
-                                    // Add upgrades’ wargear, but for limited ones include “ xN” if N>1
-                                    const upgradeGear = (u.chosenUpgrades || []).flatMap(up => {
-                                        const names = up.wargear || [];
-                                        // if it's a limited upgrade with count > 1, append " xN"
-                                        return names.map(name =>
-                                            up.type === "limited" && up.count > 1
-                                                ? `${name} x${up.count}`
-                                                : name
-                                        );
-                                    });
-
-                                    // Remove duplicates while preserving our xN text
-                                    const finalWargear = Array.from(new Set([...baseGear, ...upgradeGear]));
-
-
-                                    return (
-
-                                        <div key={u.id} className="unit-card">
-                                            <h4>{u.count}× {u.name}</h4>
-
-
-                                            {/* Statline */}
-                                            {u.statline && Array.isArray(u.statline) && (
-                                                <table
-                                                    style={{
-                                                        width: "100%",
-                                                        borderCollapse: "collapse",
-                                                        marginTop: "0.25rem",
-                                                        fontSize: "0.8rem",
-                                                        textAlign: "center",
-                                                        lineHeight: "1.2",
-                                                    }}
-                                                >
-                                                    <thead>
-                                                        <tr style={{ background: "#133", color: "#0ff" }}>
-                                                            <th style={{ padding: "2px 4px", textAlign: "left" }}>Unit</th>
-                                                            {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map((stat) => (
-                                                                <th key={stat} style={{ padding: "2px 4px" }}>{stat}</th>
-                                                            ))}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {u.statline.map((profile, i) => (
-                                                            <tr
-                                                                key={i}
-                                                                style={{
-                                                                    background: i % 2 === 0 ? "#111" : "#1a1a1a",
-                                                                    color: "#ddd",
-                                                                }}
-                                                            >
-                                                                <td style={{ padding: "2px 4px", textAlign: "left", color: "#0ff", fontWeight: "500" }}>
-                                                                    {profile.name}
-                                                                </td>
-                                                                {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map((stat) => (
-                                                                    <td key={stat} style={{ padding: "2px 4px" }}>
-                                                                        {profile[stat]}
-                                                                    </td>
-                                                                ))}
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            )}
-
-                                            {/* Rules */}
-                                            {u.rules?.length > 0 && (
-                                                <>
-                                                    <h4>Rules:</h4>
-                                                    <div style={{
-                                                        display:
-                                                            "inline"
-                                                    }}>
-                                                        {renderWithReferences(u.rules.join(", "), registry,
-                                                            openRuleModal)}
-                                                    </div>
-                                                </>
-                                            )}
-
-                                            {finalWargear.length > 0 && (
-                                                <>
-                                                    <h4>Wargear:</h4>
-                                                    <div style={{ display: "inline" }}>
-                                                        {renderWithReferences(finalWargear.join(", "), registry, openRuleModal)}
-                                                    </div>
-                                                </>
-                                            )}
-
-
-                                        </div>
-                                    )
-
-                                })}
-                            </div>
-                        );
-                    })}
+                                    })}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
+
+            <button
+                style={{ position: "absolute", top: "50%", left: "0" }}
+                onClick={() => setPanelIndex((i) => Math.max(i - 1, 0))}
+            >
+                ◀
+            </button>
+            <button
+                style={{ position: "absolute", top: "50%", right: "0" }}
+                onClick={() => setPanelIndex((i) => Math.min(i + 1, 2))}
+            >
+                ▶
+            </button>
 
 
             {/* Save Dialog */}
