@@ -227,7 +227,7 @@ export default function ArmyBuilder({ saved }) {
     const handlers = useSwipeable({
         onSwipedLeft: () => setPanel('next'),
         onSwipedRight: () => setPanel('prev'),
-        delta: 50,                 // default is 10px; bigger = less sensitive
+        delta: 75,                 // default is 10px; bigger = less sensitive
         preventScrollOnSwipe: true
     });
 
