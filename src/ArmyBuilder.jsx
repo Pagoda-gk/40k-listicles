@@ -307,7 +307,18 @@ export default function ArmyBuilder({ saved }) {
                                         {/* Statline */}
                                         {u.statline && Array.isArray(u.statline) && (
                                             <table className="unit-table">
-                                                <thead>...</thead>
+                                                <thead>
+                                                    <th>Name</th>
+                                                    <th>WS</th>
+                                                    <th>BS</th>
+                                                    <th>S</th>
+                                                    <th>T</th>
+                                                    <th>W</th>
+                                                    <th>I</th>
+                                                    <th>A</th>
+                                                    <th>Ld</th>
+                                                    <th>Sv</th>
+                                                </thead>
                                                 <tbody>
                                                     {u.statline.map((profile, i) => (
                                                         <tr key={i}>
@@ -434,7 +445,19 @@ export default function ArmyBuilder({ saved }) {
                                         {/* Statline */}
                                         {u.statline && Array.isArray(u.statline) && (
                                             <table className="unit-table">
-                                                <thead>...</thead>
+                                                <thead>
+                                                    <th>Name</th>
+                                                    <th>WS</th>
+                                                    <th>BS</th>
+                                                    <th>S</th>
+                                                    <th>T</th>
+                                                    <th>W</th>
+                                                    <th>I</th>
+                                                    <th>A</th>
+                                                    <th>Ld</th>
+                                                    <th>Sv</th>
+
+                                                </thead>
                                                 <tbody>
                                                     {u.statline.map((profile, i) => (
                                                         <tr key={i}>
