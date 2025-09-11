@@ -11,67 +11,80 @@ import React from "react";
 import { renderWithReferences } from "./utils/referenceRenderer.jsx";
 
 
+function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
+    return (
+        <div className="upgrade-group">
+            {upgrades.map((up) => {
+                const current = unit.chosenUpgrades.find(sel => sel.name === up.name);
+                const value = current ? current.count : 0;
+                const selected = Boolean(value);
+
+                // Format the label with rule references
+                const label = renderWithReferences(
+                    up.name,
+                    registry,
+                    openRuleModal
+                );
+
+                return (
+                    <div key={up.name} style={{ marginLeft: "1rem" }}>
+                        {/* ----- single / perModel ----- */}
+                        {(up.type === "single" || up.type === "perModel") && (
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={selected}
+                                    onChange={() =>
+                                        onToggle(unit.id, { ...up, count: selected ? 0 : 1 })
+                                    }
+                                />
+                                {label} (+{up.points} pts
+                                {up.type === "perModel" ? " per model" : ""})
+                            </label>
+                        )}
+
+                        {/* ----- limited (number input) ----- */}
+                        {up.type === "limited" && (
+                            <label>
+                                {label} (+{up.points} pts each)
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={up.maxPer}
+                                    value={value}
+                                    onChange={(e) =>
+                                        onToggle(unit.id, {
+                                            ...up,
+                                            count: Number(e.target.value),
+                                        })
+                                    }
+                                    style={{ width: "3rem", marginLeft: "0.5rem" }}
+                                />
+                            </label>
+                        )}
+
+                        {/* ----- nested children ----- */}
+                        {selected && up.children && (
+                            <UpgradeOptions
+                                unit={unit}
+                                upgrades={up.children}
+                                onToggle={onToggle}
+                                registry={registry}
+                                openRuleModal={openRuleModal}
+                            />
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+
+
 export default function ArmyBuilder({ saved }) {
 
-    function computeAvailableUpgrades(unit) {
-        let available = [...unit.upgrades];
-
-        // Apply conditional effects from chosen upgrades
-        unit.chosenUpgrades.forEach(sel => {
-            if (unit.conditionalEffects) {
-                unit.conditionalEffects.forEach(effect => {
-                    if (effect.triggerUpgrade === sel.name) {
-                        // Unlock additional upgrades
-                        if (effect.effects.unlockUpgrades) {
-                            available = [...available, ...effect.effects.unlockUpgrades];
-                        }
-                    }
-                });
-            }
-        });
-
-        return available;
-    }
-
-    function computeAvailableWargear(unit) {
-        let wargear = [...unit.wargear];
-
-        unit.chosenUpgrades.forEach(sel => {
-            if (unit.conditionalEffects) {
-                unit.conditionalEffects.forEach(effect => {
-                    if (effect.triggerUpgrade === sel.name && effect.effects.unlockWargear) {
-                        wargear = [...wargear, ...effect.effects.unlockWargear];
-                    }
-                });
-            }
-        });
-
-        return wargear;
-    }
-
-    function applyArmyConditionals(units, chosenUnits, conditionals = []) {
-        let modifiedUnits = units.map(u => ({ ...u }));
-
-        conditionals.forEach(rule => {
-            const triggerActive = chosenUnits.some(cu => cu.name === rule.triggerUnit);
-            if (triggerActive) {
-                rule.effects.forEach(effect => {
-                    modifiedUnits = modifiedUnits.map(u => {
-                        if (u.name === effect.target) {
-                            return { ...u, ...effect.changes };
-                        }
-                        return u;
-                    });
-                });
-            }
-        });
-
-        return modifiedUnits;
-    }
-
     const { factionId, listIndex } = useParams();
-
-
 
     let faction;
     let initialArmy = [];
@@ -94,11 +107,10 @@ export default function ArmyBuilder({ saved }) {
 
     if (!faction) return <p>Faction not found!</p>;
 
+
     const { units, rules, wargear } = faction;
 
-    const [army, setArmy] = useState([]);
-    const [selectedConfig, setSelectedConfig] = useState(null);
-    const [selectedRules, setSelectedRules] = useState(null);
+    const [army, setArmy] = useState(initialArmy);
     const [modalRule, setModalRule] = useState(null);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [saveName, setSaveName] = useState("");
@@ -106,33 +118,21 @@ export default function ArmyBuilder({ saved }) {
     const registry = buildReferenceRegistry(faction);
     const categories = ["HQ", "Elites", "Troops", "Fast Attack", "Heavy Support"];
 
-    const getRule = (name) => rules.find((r) => r.name === name);
-    const getWargear = (name) => wargear.find((w) => w.name === name);
+    const limits = {
+        HQ: 2,
+        Troops: 6,
+        Elites: 3,
+        "Fast Attack": 3,
+        "Heavy Support": 3,
+    };
+
+    const categoryCounts = categories.reduce((acc, cat) => {
+        acc[cat] = army.filter(u => u.category === cat).length;
+        return acc;
+    }, {});
 
     const openRuleModal = (rule) => setModalRule(rule);
     const closeRuleModal = () => setModalRule(null);
-
-    const effectiveUnits = applyArmyConditionals(
-        Object.values(registry).filter(item => item._type === "unit"),
-        army,
-        Object.values(registry).filter(item => item._type === "conditional"),
-    );
-
-
-
-    // Recalculate wargear counts for a unit
-    const recalcWargearCounts = (unit) => {
-        const counts = {};
-        unit.wargear?.forEach((w) => (counts[w] = 1));
-        unit.chosenUpgrades?.forEach((up) => {
-            if (!up.wargear) return;
-            up.wargear.forEach((w) => {
-                const qty = up.type === "perModel" ? unit.count : up.count || 1;
-                counts[w] = (counts[w] || 0) + qty;
-            });
-        });
-        return counts;
-    };
 
 
 
@@ -142,16 +142,9 @@ export default function ArmyBuilder({ saved }) {
             id: Date.now(),
             count: unit.minModels,
             chosenUpgrades: [],
-            wargearCounts:
-                unit.wargear?.reduce((acc, w) => {
-                    acc[w] = 1;
-                    return acc;
-                }, {}) || {},
         };
         setArmy([...army, entry]);
-        setSelectedConfig(entry);
     };
-
 
     const removeUnit = (unitId) => {
         setArmy((prev) => prev.filter((u) => u.id !== unitId));
@@ -162,7 +155,7 @@ export default function ArmyBuilder({ saved }) {
             prev.map((u) => {
                 if (u.id !== unitId) return u;
                 const resetUnit = { ...u, count: u.minModels, chosenUpgrades: [] };
-                return { ...resetUnit, wargearCounts: recalcWargearCounts(resetUnit) };
+                return { ...resetUnit };
             })
         );
     };
@@ -174,27 +167,18 @@ export default function ArmyBuilder({ saved }) {
             prev.map(u => {
                 if (u.id !== unitId) return u;
 
-                let newUpgrades = [...u.chosenUpgrades];
-                const existing = newUpgrades.find(x => x.name === upgrade.name);
+                const newUpgrades = u.chosenUpgrades
+                    .filter(x => x.name !== upgrade.name)
+                    .concat(upgrade.count > 0 ? [{ ...upgrade }] : []);
 
-                if (upgrade.count === 0) {
-                    newUpgrades = newUpgrades.filter(x => x.name !== upgrade.name);
-                } else if (existing) {
-                    newUpgrades = newUpgrades.map(x => x.name === upgrade.name ? upgrade : x);
-                } else {
-                    newUpgrades.push(upgrade);
-                }
+                return {
+                    ...u,
+                    chosenUpgrades: newUpgrades,
 
-                const updatedUnit = { ...u, chosenUpgrades: newUpgrades };
-                // ALWAYS recalc wargear counts after any upgrade change
-                updatedUnit.wargearCounts = recalcWargearCounts(updatedUnit);
-
-                return updatedUnit;
+                };
             })
         );
     };
-
-
 
 
     const updateCount = (unitId, value) => {
@@ -211,10 +195,11 @@ export default function ArmyBuilder({ saved }) {
                     ),
                 };
 
-                return { ...updatedUnit, wargearCounts: recalcWargearCounts(updatedUnit) };
+                return { ...updatedUnit };
             })
         );
     };
+
 
 
     const totalPoints = army.reduce((sum, u) => {
@@ -227,46 +212,16 @@ export default function ArmyBuilder({ saved }) {
     }, 0);
 
 
+    const [selectedConditional, setSelectedConditional] = useState(null);
 
+    const activeModifier = selectedConditional
+        ? conditionals[selectedConditional]
+        : null;
 
-    function ArmyBuilderSwipeWrapper({ children }) {
-        const [currentPanel, setCurrentPanel] = useState(0);
-        const totalPanels = React.Children.count(children);
+    const displayedUnits = activeModifier
+        ? units.map((u) => activeModifier.modifyUnitType(u))
+        : units;
 
-        const handlers = useSwipeable({
-            onSwipedLeft: () => setCurrentPanel((prev) => Math.min(prev + 1, totalPanels - 1)),
-            onSwipedRight: () => setCurrentPanel((prev) => Math.max(prev - 1, 0)),
-            trackMouse: true,
-        });
-
-        return (
-            <div
-                {...handlers}
-                style={{ overflow: "hidden", width: "100%", height: "100vh" }}
-            >
-                <div
-                    style={{
-                        display: "flex",
-                        width: `${totalPanels * 100}%`,
-                        transform: `translateX(-${(100 / totalPanels) * currentPanel}%)`,
-                        transition: "transform 0.3s ease",
-                        height: "100%",
-                    }}
-                >
-                    {React.Children.map(children, (child) => (
-                        <div style={{ flex: "0 0 100%", overflowY: "auto", height: "100%" }}>
-                            {child}
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
-    const conditionals = Object.values(registry).filter(item => item._type === "conditional");
-
-    // Derived army with conditionals applied
-    const effectiveArmy = applyArmyConditionals(army, army, conditionals);
 
 
     return (
@@ -334,6 +289,7 @@ export default function ArmyBuilder({ saved }) {
 
                 {/* Left Panel */}
                 <div className="panel">
+                    
                     <h2>Units</h2>
                     {categories.map((cat) => (
                         <div key={cat}>
@@ -341,16 +297,23 @@ export default function ArmyBuilder({ saved }) {
                             <div className="unit-list">
                                 {units
                                     .filter((u) => u.category === cat)
-                                    .map((u) => (
-                                        <button
-                                            key={u.name}
-                                            onClick={() => addUnit(u)}
-                                            className="unit-button"
-                                        >
-                                            {u.name}{" "}
-                                            <span className="unit-points">({u.basePoints} pts)</span>
-                                        </button>
-                                    ))}
+                                    .map((u) => {
+                                        const full = categoryCounts[cat] >= limits[cat];
+                                        return (
+                                            <button
+                                                key={u.name}
+                                                onClick={() => addUnit(u)}
+                                                className="unit-button"
+                                                style={{
+                                                    opacity: full ? 0.4 : 1,
+                                                    pointerEvents: full ? "none" : "auto",
+                                                    cursor: full ? "not-allowed" : "pointer",
+                                                }}
+                                            >
+                                                {u.name} <span className="unit-points">({u.basePoints} pts)</span>
+                                            </button>
+                                        );
+                                    })}
                             </div>
                         </div>
                     ))}
@@ -362,10 +325,9 @@ export default function ArmyBuilder({ saved }) {
                 <div className="panel">
                     <h2>Army List</h2>
                     {categories.map((cat) => {
-                        const unitsInCat = effectiveArmy.filter(u => u.category === cat);
+                        const unitsInCat = army.filter((u) =>
+                            u.category === cat);
                         if (!unitsInCat.length) return null;
-
-
 
                         return (
                             <div key={cat} className="category-section">
@@ -377,6 +339,7 @@ export default function ArmyBuilder({ saved }) {
                                             if (up.type === "perModel") return s + u.count * up.points;
                                             return s + up.points * (up.count || 1);
                                         }, 0);
+
 
                                     return (
                                         <div key={u.id} className="unit-card">
@@ -444,93 +407,46 @@ export default function ArmyBuilder({ saved }) {
                                             {u.rules?.length > 0 && (
                                                 <>
                                                     <h4>Rules:</h4>
-                                                    <div style={{ display: "inline" }}>
-                                                        {renderWithReferences(u.rules.join(", "), registry, openRuleModal)}
-                                                    </div>
-                                                </>
-                                            )}
-                                            {/* Wargear */}
-                                            {u.wargear?.length > 0 && (
-                                                <>
-                                                    <h4>Wargear:</h4>
-                                                    <div style={{ display: "inline" }}>
-                                                        {renderWithReferences(
-                                                            Object.entries(u.wargearCounts)
-                                                                .map(([gearName, count]) =>
-                                                                    count > 1 ? `${gearName} x${count}` : gearName
-                                                                )
-                                                                .join(", "),
-                                                            registry,
-                                                            openRuleModal
-                                                        )}
-                                                    </div>
+
+                                                    {renderWithReferences(u.rules.join(", "), registry, openRuleModal)}
                                                 </>
                                             )}
 
+                                            {/* Wargear */}
+                                            {(u.wargear?.length || u.chosenUpgrades?.some(up => up.wargear)) > 0 && (
+                                                <>
+                                                    <h4>Wargear:</h4>
+                                                    <div>
+                                                        {renderWithReferences(
+                                                            Array.from(
+                                                                new Set([
+                                                                    ...(u.wargear || []),
+                                                                    ...(u.chosenUpgrades?.flatMap(up => up.wargear || []) || []),
+                                                                ])
+                                                            ).join(", "),
+                                                            registry,
+                                                            openRuleModal)}
+                                                    </div>
+                                                </>
+                                            )}
 
 
                                             {/* Upgrades */}
                                             <h4>Options:</h4>
-                                            <div className="upgrade-list">
-                                                {computeAvailableUpgrades(effectiveArmy.find(eu => eu.id === u.id) || u).map((up) => {
-                                                    const current = u.chosenUpgrades.find(sel => sel.name === up.name);
-                                                    const value = current ? current.count : 0;
+                                            <h4>Options:</h4>
+                                            <UpgradeOptions
+                                                unit={u}
+                                                upgrades={u.upgrades || []}
+                                                onToggle={toggleUpgrade}
+                                                registry={registry}
+                                                openRuleModal={openRuleModal}
+                                            />
 
-                                                    return (
-                                                        <div key={up.name} className="upgrade-option">
-                                                            {up.type === "single" && (
-                                                                <>
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        checked={!!value}
-                                                                        onChange={() => toggleUpgrade(u.id, { ...up, count: value ? 0 : 1 })}
-                                                                    />
-                                                                    {renderWithReferences(up.name, registry, openRuleModal)} (+{up.points} pts)
-                                                                </>
-                                                            )}
-
-                                                            {up.type === "limited" && (
-                                                                <>
-                                                                    {renderWithReferences(up.name, registry, openRuleModal)} (+{up.points} pts each)
-                                                                    <input
-                                                                        type="number"
-                                                                        min={0}
-                                                                        max={up.maxPer}
-                                                                        value={value}
-                                                                        onChange={(e) => toggleUpgrade(u.id, { ...up, count: Number(e.target.value) })}
-                                                                    />
-                                                                </>
-                                                            )}
-
-                                                            {up.type === "perModel" && (
-                                                                <>
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        checked={!!value}
-                                                                        onChange={() => toggleUpgrade(u.id, { ...up, count: value ? 0 : 1 })}
-                                                                    />
-                                                                    {renderWithReferences(up.name, registry, openRuleModal)} (+{up.points} pts per model)
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
 
                                             {/* Action Buttons */}
                                             <div className="unit-actions">
-                                                <button
-                                                    className="unit-button"
-                                                    onClick={() => resetUnit(u.id)}
-                                                >
-                                                    Reset
-                                                </button>
-                                                <button
-                                                    className="unit-button"
-                                                    onClick={() => removeUnit(u.id)}
-                                                >
-                                                    Remove
-                                                </button>
+                                                <button onClick={() => resetUnit(u.id)}>Reset</button>
+                                                <button onClick={() => removeUnit(u.id)}>Remove</button>
                                             </div>
                                         </div>
                                     );
@@ -538,27 +454,49 @@ export default function ArmyBuilder({ saved }) {
                             </div>
                         );
                     })}
+
                     <h3>Total: {totalPoints} pts</h3>
                 </div>
 
                 {/* Right Panel */}
                 <div className="panel">
                     <h2>Army Reference</h2>
-                    {categories.map((cat) => {
-                        const catUnits = effectiveArmy.filter((u) => u.category === cat); if (!catUnits.length) return null;
 
+                    {categories.map((cat) => {
+                        const catUnits = army.filter((u) =>
+                            u.category === cat);
+                        if (!catUnits.length) return null;
                         return (
-                            <div key={cat} style={{ marginBottom: "1rem" }}>
+                            <div key={cat} style={{
+                                marginBottom:
+                                    "1rem"
+                            }}>
                                 <h3>{cat}</h3>
                                 {catUnits.map((u) => {
-                                    // Split base vs upgrade wargear for clarity
+
+                                    // Base wargear as before
                                     const baseGear = u.wargear || [];
-                                    const upgradeGear = Object.entries(u.wargearCounts)
-                                        .filter(([name]) => !baseGear.includes(name));
+
+                                    // Add upgrades’ wargear, but for limited ones include “ xN” if N>1
+                                    const upgradeGear = (u.chosenUpgrades || []).flatMap(up => {
+                                        const names = up.wargear || [];
+                                        // if it's a limited upgrade with count > 1, append " xN"
+                                        return names.map(name =>
+                                            up.type === "limited" && up.count > 1
+                                                ? `${name} x${up.count}`
+                                                : name
+                                        );
+                                    });
+
+                                    // Remove duplicates while preserving our xN text
+                                    const finalWargear = Array.from(new Set([...baseGear, ...upgradeGear]));
+
 
                                     return (
+
                                         <div key={u.id} className="unit-card">
                                             <h4>{u.count}× {u.name}</h4>
+
 
                                             {/* Statline */}
                                             {u.statline && Array.isArray(u.statline) && (
@@ -574,7 +512,7 @@ export default function ArmyBuilder({ saved }) {
                                                 >
                                                     <thead>
                                                         <tr style={{ background: "#133", color: "#0ff" }}>
-                                                            <th style={{ padding: "2 px 4px", textAlign: "left" }}>Unit</th>
+                                                            <th style={{ padding: "2px 4px", textAlign: "left" }}>Unit</th>
                                                             {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map((stat) => (
                                                                 <th key={stat} style={{ padding: "2px 4px" }}>{stat}</th>
                                                             ))}
@@ -589,7 +527,7 @@ export default function ArmyBuilder({ saved }) {
                                                                     color: "#ddd",
                                                                 }}
                                                             >
-                                                                <td style={{ padding: "2px 4px", textAlign: "left", color: "#0ff" }}>
+                                                                <td style={{ padding: "2px 4px", textAlign: "left", color: "#0ff", fontWeight: "500" }}>
                                                                     {profile.name}
                                                                 </td>
                                                                 {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map((stat) => (
@@ -607,106 +545,88 @@ export default function ArmyBuilder({ saved }) {
                                             {u.rules?.length > 0 && (
                                                 <>
                                                     <h4>Rules:</h4>
-                                                    <div style={{ display: "inline" }}>
-                                                        {renderWithReferences(u.rules.join(", "), registry, openRuleModal)}
+                                                    <div style={{
+                                                        display:
+                                                            "inline"
+                                                    }}>
+                                                        {renderWithReferences(u.rules.join(", "), registry,
+                                                            openRuleModal)}
                                                     </div>
                                                 </>
                                             )}
 
-                                            {/* Base Wargear */}
-                                            {baseGear.length > 0 && (
+                                            {finalWargear.length > 0 && (
                                                 <>
                                                     <h4>Wargear:</h4>
                                                     <div style={{ display: "inline" }}>
-                                                        {renderWithReferences(
-                                                            baseGear.map((name) => {
-                                                                const count = u.wargearCounts[name] || 1;
-                                                                return count > 1 ? `${name} x${count}` : name;
-                                                            }).join(", "),
-                                                            registry,
-                                                            openRuleModal
-                                                        )}
-                                                    </div>
-                                                </>
-                                            )}
-
-                                            {/* Upgrade Wargear */}
-                                            {upgradeGear.length > 0 && (
-                                                <>
-                                                    <h4>Upgrade Wargear:</h4>
-                                                    <div style={{ display: "inline" }}>
-                                                        {renderWithReferences(
-                                                            upgradeGear.map(([name, count]) =>
-                                                                count > 1 ? `[${name}] x${count}` : `[${name}]`
-                                                            ).join(", "),
-                                                            registry,
-                                                            openRuleModal
-                                                        )}
+                                                        {renderWithReferences(finalWargear.join(", "), registry, openRuleModal)}
                                                     </div>
                                                 </>
                                             )}
 
 
                                         </div>
-                                    );
+                                    )
+
                                 })}
                             </div>
                         );
                     })}
                 </div>
-
             </div>
 
 
             {/* Save Dialog */}
-            {showSaveDialog && (
-                <div
-                    style={{
-                        position: "fixed",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        background: "rgba(0,0,0,0.5)",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        zIndex: 2000,
-                    }}
-                >
-                    <div style={{ background: "#222", padding: "1rem 2rem", borderRadius: "8px" }}>
-                        <h3>Save Army List</h3>
-                        <input
-                            type="text"
-                            placeholder="List Name"
-                            value={saveName}
-                            onChange={(e) => setSaveName(e.target.value)}
-                            style={{ padding: "0.25rem 0.5rem", width: "100%", marginBottom: "1rem" }}
-                        />
-                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
-                            <button onClick={() => setShowSaveDialog(false)}>Cancel</button>
-                            <button
-                                onClick={() => {
-                                    if (!saveName) return;
-                                    // Load existing saved lists from localStorage
-                                    const savedLists = JSON.parse(localStorage.getItem("savedLists") || "[]");
-                                    savedLists.push({
-                                        name: saveName,
-                                        system: faction.system || faction.name,
-                                        army,
-                                    });
-                                    localStorage.setItem("savedLists", JSON.stringify(savedLists));
-                                    setShowSaveDialog(false);
-                                    setSaveName("");
-                                    alert("Army saved!");
-                                }}
-                            >
-                                Save
-                            </button>
+            {
+                showSaveDialog && (
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            background: "rgba(0,0,0,0.5)",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            zIndex: 2000,
+                        }}
+                    >
+                        <div style={{ background: "#222", padding: "1rem 2rem", borderRadius: "8px" }}>
+                            <h3>Save Army List</h3>
+                            <input
+                                type="text"
+                                placeholder="List Name"
+                                value={saveName}
+                                onChange={(e) => setSaveName(e.target.value)}
+                                style={{ padding: "0.25rem 0.5rem", width: "100%", marginBottom: "1rem" }}
+                            />
+                            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+                                <button onClick={() => setShowSaveDialog(false)}>Cancel</button>
+                                <button
+                                    onClick={() => {
+                                        if (!saveName) return;
+                                        // Load existing saved lists from localStorage
+                                        const savedLists = JSON.parse(localStorage.getItem("savedLists") || "[]");
+                                        savedLists.push({
+                                            name: saveName,
+                                            system: faction.system || faction.name,
+                                            army,
+                                        });
+                                        localStorage.setItem("savedLists", JSON.stringify(savedLists));
+                                        setShowSaveDialog(false);
+                                        setSaveName("");
+                                        alert("Army saved!");
+                                    }}
+                                >
+                                    Save
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Rule Modal */}
             <RuleModal

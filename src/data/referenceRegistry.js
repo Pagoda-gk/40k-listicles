@@ -1,7 +1,7 @@
 // src/data/referenceRegistry.js
 import { gameRules } from "./gameRules";
 
-export function buildReferenceRegistry({ rules, wargear, units, conditionals }) {
+export function buildReferenceRegistry({ rules, wargear, units}) {
   const normalize = (items, type) =>
     (items || []).map((item) => ({ ...item, _type: type }));
 
@@ -10,7 +10,6 @@ export function buildReferenceRegistry({ rules, wargear, units, conditionals }) 
     ...normalize(rules || [], "rule"),
     ...normalize(wargear || [], "wargear"),
     ...normalize(units || [], "unit"),
-    ...normalize(conditionals || [], "conditional"),
   ];
 
   // Convert array to lookup object

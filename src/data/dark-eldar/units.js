@@ -33,7 +33,7 @@ export const units = [
         ],
 
     },
-     {
+    {
         name: "Wych Lord",
         category: "HQ",
         basePoints: 60,
@@ -101,11 +101,17 @@ export const units = [
         rules: ['[Dodge]', '[Combat Drugs]'],
         wargear: ["[Splinter Pistol]", "[Close Combat Weapon]"],
         upgrades: [
-            { type: "single", name: "[Succubus]", points: 8 },
-            { type: "limited", name: "[Blaster]", points: 15, maxPer: 2 },
-            { type: "perModel", name: "[Haywire Grenades]", points: 4 },
-            { type: "perModel", name: "[Plasma Grenades]", points: 1 },
-            { type: "perModel", name: "[Wych Weapons]", points: 1 },
+            {
+                type: "single", name: "[Succubus]", points: 8,
+                children: [
+                    { type: "single", name: "Extra Wargear 1", points: 5, wargear: ["Blaster (Succubus)"]  },
+                    { type: "single", name: "Extra Wargear 2", points: 5, wargear: ["Something (Succubus)"]  },
+                ],
+            },
+            { type: "limited", name: "[Blaster]", points: 15, maxPer: 2, wargear: ["Blaster"] },
+            { type: "perModel", name: "[Haywire Grenades]", points: 4, wargear: ["Haywire Grenades"] },
+            { type: "perModel", name: "[Plasma Grenades]", points: 1, wargear: ["Plasma Grenades"] },
+            { type: "perModel", name: "[Wych Weapons]", points: 1, wargear: ["Wych Weapons"] },
         ],
     },
 
@@ -128,7 +134,7 @@ export const units = [
                 Ld: 8,
                 Sv: "6+",
             },
-                        {
+            {
                 name: "Sybarite",
                 WS: 4,
                 BS: 4,
