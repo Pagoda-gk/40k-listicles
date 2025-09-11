@@ -404,7 +404,7 @@ button:hover,
 }
 
 .unit-table tr:nth-child(even) {
-  background: #111;
+  background: #cacac9;
   color: #ddd;
 }
 

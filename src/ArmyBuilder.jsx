@@ -255,18 +255,29 @@ export default function ArmyBuilder({ saved }) {
                                 .filter((u) => u.category === cat)
                                 .map((u) => {
                                     const full = categoryCounts[cat] >= limits[cat];
+
+                                    // Count how many of this unit are in the army
+                                    const unitCount = army.filter(a => a.name === u.name).length;
+
                                     return (
                                         <button
                                             key={u.name}
                                             onClick={() => addUnit(u)}
                                             className="unit-button"
                                             style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
                                                 opacity: full ? 0.4 : 1,
                                                 pointerEvents: full ? "none" : "auto",
                                                 cursor: full ? "not-allowed" : "pointer",
+                                                padding: "0.25rem 0.5rem"
                                             }}
                                         >
-                                            {u.name} <span className="unit-points">({u.basePoints} pts)</span>
+                                            <span>
+                                                {u.name} <span className="unit-points">({u.basePoints * u.minModels} pts)</span>
+                                            </span>
+                                            {unitCount > 0 && <span className="unit-count">{unitCount}</span>}
                                         </button>
                                     );
                                 })}
