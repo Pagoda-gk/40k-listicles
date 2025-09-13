@@ -16,6 +16,15 @@ export default function App() {
     setSavedLists(lists);
   }, []);
 
+  const handleDeleteList = (index) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this list?");
+    if (!confirmDelete) return;
+
+    const updated = savedLists.filter((_, i) => i !== index);
+    setSavedLists(updated);
+    localStorage.setItem("savedLists", JSON.stringify(updated));
+  };
+
   // Group factions by their system (or category)
   const grouped = Object.entries(factions).reduce((acc, [id, faction]) => {
     const key = faction.system || "Other"; // fallback if no category
@@ -56,6 +65,12 @@ export default function App() {
                         <Link to={`/army-saved/${i}`} style={{ marginLeft: "0.5rem" }}>
                           Open
                         </Link>
+                        <button
+                          onClick={() => handleDeleteList(i)}
+                          style={{ marginLeft: "0.5rem" }}
+                        >
+                          Delete
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -69,7 +84,7 @@ export default function App() {
                 return (
                   <div key={sectionName} className="section-container">
                     <h2
-                      sclassName="section-header"
+                      className="section-header"
                       onClick={() => toggleSection(sectionName)}
                     >
                       {sectionName} {isOpen ? "▼" : "▶"}
@@ -79,7 +94,7 @@ export default function App() {
                         {sectionFactions.map((f) => (
                           <li key={f.id}>
                             <Link to={`/army/${f.id}`} className="faction-link">
-                            {f.name}</Link>
+                              {f.name}</Link>
                           </li>
                         ))}
                       </ul>

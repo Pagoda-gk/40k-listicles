@@ -11,6 +11,13 @@ export const gameRules = [
   {
     name: "Pistol",
     description: "Pistol rules"
+  },
+  {
+    name: "Close Combat Weapon",
+    description: "Allows for attacks in Assault. A model armed with two Close Combat Weapons gain an extra attack.",
+  },
+  {
+    name: "Power Weapon",
+    description: "Uses wielders base strength, but ignores [Armour Saves].",
   }
-  // add more core rules here
 ];

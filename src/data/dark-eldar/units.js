@@ -2,7 +2,7 @@ import ReactMarkdown from "react-markdown";
 
 export const units = [
     {
-        name: "Archon",
+        name: "Lord - Archon",
         category: "HQ",
         basePoints: 60,
         minModels: 1,
@@ -25,18 +25,50 @@ export const units = [
         rules: ["[Independent Character]", "[Retinue]"],
         wargear: ["[Splinter Pistol]"],
         upgrades: [
-            { type: "single", name: "[Agoniser]", points: 20 },
-            { type: "single", name: "[Close Combat Weapon]", points: 1 },
-            { type: "single", name: "[Power Weapon]", points: 10 },
-            { type: "single", name: "[Poisoned Blades]", points: 5 },
+            { type: "single", name: "[Agoniser]", points: 20, wargear: ["[Agoniser]"] },
+            { type: "single", name: "[Close Combat Weapon]", points: 1, wargear: ["[Close Combat Weapon]"] },
+            { type: "single", name: "[Power Weapon]", points: 10, wargear: ["[Power Weapon]"] },
+            { type: "single", name: "[Poisoned Blades]", points: 5, wargear: ["[Poisoned Blades]"] },
 
         ],
 
     },
     {
-        name: "Wych Lord",
+        name: "Lord - Dracon",
         category: "HQ",
-        basePoints: 60,
+        basePoints: 35,
+        minModels: 1,
+        maxModels: 1,
+        statline: [
+            {
+                name: "Dracon",
+                WS: 5,
+                BS: 5,
+                S: 3,
+                T: 3,
+                W: 2,
+                I: 6,
+                A: 2,
+                Ld: 9,
+                Sv: "5+",
+
+            }
+        ],
+        rules: ["[Independent Character]", "[Retinue]"],
+        wargear: ["[Splinter Pistol]"],
+        upgrades: [
+            { type: "single", name: "[Agoniser]", points: 20, wargear: ["[Agoniser]"] },
+            { type: "single", name: "[Close Combat Weapon]", points: 1, wargear: ["[Close Combat Weapon]"] },
+            { type: "single", name: "[Power Weapon]", points: 10, wargear: ["[Power Weapon]"] },
+            { type: "single", name: "[Poisoned Blades]", points: 5, wargear: ["[Poisoned Blades]"] },
+
+        ],
+
+    },
+    {
+        name: "Wych Lord - Archite",
+        category: "HQ",
+        basePoints: 70,
         minModels: 1,
         maxModels: 1,
         statline: [
@@ -47,23 +79,51 @@ export const units = [
                 S: 3,
                 T: 3,
                 W: 3,
-                I: 7,
+                I: 8,
                 A: 3,
                 Ld: 9,
-                Sv: "5+",
-
+                Sv: "6+",
             }
         ],
-        rules: ["[Independent Character]", "[Retinue]"],
-        wargear: ["[Splinter Pistol]"],
+        rules: ["[Independent Character]", "[Retinue]", "[Dodge]"],
+        wargear: ["[Splinter Pistol]", "[Wych Weapons]"],
         upgrades: [
-            { type: "single", name: "[Agoniser]", points: 20 },
-            { type: "single", name: "[Close Combat Weapon]", points: 1 },
-            { type: "single", name: "[Power Weapon]", points: 10 },
-            { type: "single", name: "[Poisoned Blades]", points: 5 },
+            { type: "single", name: "[Agoniser]", points: 20, wargear: ["[Agoniser]"] },
+            { type: "single", name: "[Close Combat Weapon]", points: 1, wargear: ["[Close Combat Weapon]"] },
+            { type: "single", name: "[Power Weapon]", points: 10, wargear: ["[Power Weapon]"] },
+            { type: "single", name: "[Poisoned Blades]", points: 5, wargear: ["[Poisoned Blades]"] },
 
         ],
+    },
+        {
+        name: "Wych Lord - Dracite",
+        category: "HQ",
+        basePoints: 45,
+        minModels: 1,
+        maxModels: 1,
+        statline: [
+            {
+                name: "Dracite",
+                WS: 6,
+                BS: 6,
+                S: 3,
+                T: 3,
+                W: 3,
+                I: 8,
+                A: 3,
+                Ld: 9,
+                Sv: "6+",
+            }
+        ],
+        rules: ["[Independent Character]", "[Retinue]", "[Dodge]"],
+        wargear: ["[Splinter Pistol]", "[Wych Weapons]"],
+        upgrades: [
+            { type: "single", name: "[Agoniser]", points: 20, wargear: ["[Agoniser]"] },
+            { type: "single", name: "[Close Combat Weapon]", points: 1, wargear: ["[Close Combat Weapon]"] },
+            { type: "single", name: "[Power Weapon]", points: 10, wargear: ["[Power Weapon]"] },
+            { type: "single", name: "[Poisoned Blades]", points: 5, wargear: ["[Poisoned Blades]"] },
 
+        ],
     },
     {
         name: "Wyches",

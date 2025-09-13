@@ -7,11 +7,7 @@ export const wargear = [
     description: "24\" Str 3, AP 5, Rapid Fire.",
     cost: 20,
   },
-    {
-    name: "Close Combat Weapon",
-    description: "24\" Str 3, AP 5, Rapid Fire.",
-    cost: 1,
-  },
+
     {
     name: "Destructor",
     description: "24\" Str 3, AP 5, Rapid Fire.",
@@ -22,11 +18,7 @@ export const wargear = [
     description: "24\" Str 3, AP 5, Rapid Fire.",
     cost: 5,
   },
-    {
-    name: "Power Weapon",
-    description: "24\" Str 3, AP 5, Rapid Fire.",
-    cost: 15,
-  },
+
     {
     name: "Scissorhand",
     description: "24\" Str 3, AP 5, Rapid Fire.",

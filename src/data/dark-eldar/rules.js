@@ -1,5 +1,10 @@
 export const rules = [
- {
+  {
+    // <-- this is the special one that lists the others
+    name: "Faction Rules",
+    description: "[Fleet of Foot], [Piratical Raiders]",
+  },
+  {
     name: "Fleet of Foot",
     description: `In the **Shooting Phase**, the unit may run instead of shoot.  
 Roll a D6 and the unit may move this far in inches.`,
