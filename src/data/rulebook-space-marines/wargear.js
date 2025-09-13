@@ -5,17 +5,17 @@ export const wargear = [
 
   {
     name: "Power Fist",
-    description: 'The user may double it\'s Strength characteristic up to a maximum of 10 when rolling to wound. This weapo ignores all [Armour Saves]. The user always strikes last.',
+    description: 'The user may double it\'s Strength characteristic up to a maximum of 10 when rolling to wound. This weapon ignores all [Armour Saves]. The user always strikes last.',
     cost: 25,
   },
     {
     name: "Chainfist",
-    description: 'The user may double it\'s Strength characteristic up to a maximum of 10 when rolling to wound. This weapo ignores all [Armour Saves]. The user always strikes last.',
+    description: 'The user may double it\'s Strength characteristic up to a maximum of 10 when rolling to wound. This weapon ignores all [Armour Saves]. The user always strikes last.',
     cost: 25,
   },
     {
     name: "Crozius Arcanum",
-    description: 'The user may double it\'s Strength characteristic up to a maximum of 10 when rolling to wound. This weapo ignores all [Armour Saves]. The user always strikes last.',
+    description: 'Counts as a [Power Weapon] and ignores all [Armour Saves].',
     cost: 25,
   },
 
@@ -62,8 +62,13 @@ export const wargear = [
   //Wargear
 
   {
-    name: "Succubus",
-    description: "Extra attack and may take wargear.",
+    name: "Rosarius",
+    description: "The wearer gets a 4+ [Invulnerable Save].",
     cost: 10,
   },
+
+  {
+name: "Storm Shield",
+description: " The user gains a 4+ [Invulnerable Save]."
+  }
 ];

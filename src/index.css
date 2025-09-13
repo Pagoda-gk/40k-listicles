@@ -579,6 +579,60 @@ button:hover,
   margin-top: 0;
 }
 
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;        /* small gap between buttons and value */
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+}
+
+.stepper button {
+  width: 1.5rem;       /* match your smaller size */
+  height: 1.5rem;
+  font-size: 1rem;     /* slightly smaller font than before */
+  line-height: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
+
+.stepper-value {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.models-heading {
+  margin-bottom: 2px;   
+}
+
+.upgrade-item {
+  display: flex;
+  flex-direction: column; /* stack label and input vertically */
+  align-items: flex-start; /* left-align everything */
+  margin-bottom: 0.5rem;
+}
+
+.upgrade-label {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.upgrade-input-checkbox {
+  width: 1.4rem;   /* default is ~1rem, so slightly larger */
+  height: 1.4rem;
+  accent-color: #111; /* makes the checkmark darker and visible */
+}
+
+.upgrade-stepper {
+  margin-left: 0;
+  margin-bottom: 0.25rem;
+}
+
+
 
 
 

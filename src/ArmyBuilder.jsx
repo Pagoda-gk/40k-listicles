@@ -12,9 +12,33 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
+function Stepper({ value, min = 0, max = Infinity, onChange }) {
+    const dec = () => onChange(Math.max(min, value - 1));
+    const inc = () => onChange(Math.min(max, value + 1));
+
+    return (
+        <div className="stepper">
+            <button type="button" onClick={dec} disabled={value <= min}>
+                -
+            </button>
+            <span className="stepper-value">{value}</span>
+            <button type="button" onClick={inc} disabled={value >= max}>
+                +
+            </button>
+        </div>
+    );
+}
 
 
 function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
+
+    // helper: total count selected in a group
+    const totalSelectedInGroup = (group) =>
+        group.options.reduce((sum, opt) => {
+            const sel = unit.chosenUpgrades.find(u => u.name === opt.name);
+            return sum + (sel ? sel.count : 0);
+        }, 0);
+
     return (
         <div className="upgrade-group">
             {upgrades.map((up) => {
@@ -22,69 +46,130 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                 const value = current ? current.count : 0;
                 const selected = Boolean(value);
 
-                // Format the label with rule references
-                const label = renderWithReferences(
-                    up.name,
-                    registry,
-                    openRuleModal
-                );
+                // Format label with rule references
+                const label = renderWithReferences(up.name, registry, openRuleModal);
 
-                return (
-                    <div key={up.name} style={{ marginLeft: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        {/* ----- single / perModel ----- */}
-                        {(up.type === "single" || up.type === "perModel") && (
-                            <>
-                                <input
-                                    type="checkbox"
-                                    checked={selected}
-                                    onChange={() =>
-                                        onToggle(unit.id, { ...up, count: selected ? 0 : 1 })
-                                    }
-                                />
-                                <span>
-                                    {label} (+{up.points} pts
-                                    {up.type === "perModel" ? " per model" : ""})
-                                </span>
-                            </>
-                        )}
-
-                        {/* ----- limited (number input) ----- */}
-                        {up.type === "limited" && (
-                            <label>
-                                {label} (+{up.points} pts each)
-                                <input
-                                    type="number"
-                                    min={0}
-                                    max={up.maxPer}
-                                    value={value}
-                                    onChange={(e) =>
-                                        onToggle(unit.id, {
-                                            ...up,
-                                            count: Number(e.target.value),
-                                        })
-                                    }
-                                    className="upgrade-input"
-                                />
-                            </label>
-                        )}
-
-                        {/* ----- nested children ----- */}
-                        {selected && up.children && (
-                            <UpgradeOptions
-                                unit={unit}
-                                upgrades={up.children}
-                                onToggle={onToggle}
-                                registry={registry}
-                                openRuleModal={openRuleModal}
+                // --- SINGLE or PER MODEL ---
+                if (up.type === "single" || up.type === "perModel") {
+                    return (
+                        <div key={up.name} className="upgrade-item">
+                            <span className="upgrade-label">
+                                {label} (+{up.points} pts{up.type === "perModel" ? " per model" : ""})
+                            </span>
+                            <input
+                                type="checkbox"
+                                checked={selected}
+                                disabled={up.forced}
+                                onChange={() =>
+                                    onToggle(unit.id, { ...up, count: selected ? 0 : 1 })
+                                }
+                                className="upgrade-input-checkbox"
                             />
-                        )}
-                    </div>
-                );
+
+                            {selected && up.children && (
+                                <UpgradeOptions
+                                    unit={unit}
+                                    upgrades={up.children}
+                                    onToggle={onToggle}
+                                    registry={registry}
+                                    openRuleModal={openRuleModal}
+                                />
+                            )}
+                        </div>
+                    );
+                }
+
+                // --- LIMITED ---
+                if (up.type === "limited") {
+                    return (
+                        <div key={up.name} className="upgrade-item">
+                            <span className="upgrade-label">
+                                {label} (+{up.points} pts each)
+                            </span>
+                            <Stepper
+                                value={value}
+                                min={0}
+                                max={up.maxPer}
+                                onChange={(newVal) => onToggle(unit.id, { ...up, count: newVal })}
+                                className="upgrade-stepper"
+                            />
+                            {selected && up.children && (
+                                <UpgradeOptions
+                                    unit={unit}
+                                    upgrades={up.children}
+                                    onToggle={onToggle}
+                                    registry={registry}
+                                    openRuleModal={openRuleModal}
+                                />
+                            )}
+                        </div>
+                    );
+                }
+
+                // --- GROUPED ---
+                if (up.type === "grouped") {
+                    const totalSelected = totalSelectedInGroup(up);
+
+                    return (
+                        <div key={up.name} className="upgrade-group">
+                            <strong>Up to {up.maxPer} models may take:</strong>
+                            {up.options.map(opt => {
+                                const optCurrent = unit.chosenUpgrades.find(sel => sel.name === opt.name);
+                                const optValue = optCurrent ? optCurrent.count : 0;
+                                const maxAllowed = up.maxPer - (totalSelected - optValue);
+
+                                return (
+                                    <div key={opt.name} className="upgrade-item">
+                                        <span className="upgrade-label">
+                                            {opt.name} (+{opt.points} pts)
+                                        </span>
+                                        <Stepper
+                                            value={optValue}
+                                            min={0}
+                                            max={maxAllowed}
+                                            onChange={(newVal) => onToggle(unit.id, { ...opt, count: newVal })}
+                                        />
+                                    </div>
+                                );
+                            })}
+
+                            {/* optional: nested children per option */}
+                            {up.options.map(opt => {
+                                const sel = unit.chosenUpgrades.find(s => s.name === opt.name);
+                                return sel?.count > 0 && opt.children ? (
+                                    <UpgradeOptions
+                                        key={opt.name + "-children"}
+                                        unit={unit}
+                                        upgrades={opt.children}
+                                        onToggle={onToggle}
+                                        registry={registry}
+                                        openRuleModal={openRuleModal}
+                                    />
+                                ) : null;
+                            })}
+                        </div>
+                    );
+                }
+
+                return null; // fallback
             })}
         </div>
     );
 }
 
+function getMinimumUnitCost(unit) {
+    const base = unit.basePoints * unit.minModels;
+    const forced = (unit.upgrades || [])
+        .filter(up => up.forced)
+        .reduce((sum, up) => {
+            if (up.type === "perModel") {
+                // forced per model → pay for each model
+                return sum + up.points * unit.minModels;
+            }
+            return sum + up.points;  // single/limited forced assumed count 1
+        }, 0);
+    return base + forced;
+}
 
 
 export default function ArmyBuilder({ saved }) {
@@ -141,11 +226,14 @@ export default function ArmyBuilder({ saved }) {
 
 
     const addUnit = (unit) => {
+        const forced = (unit.upgrades || [])
+            .filter(up => up.forced)
+            .map(up => ({ ...up, count: 1 }));
         const entry = {
             ...unit,
             id: Date.now(),
             count: unit.minModels,
-            chosenUpgrades: [],
+            chosenUpgrades: forced,
         };
         setArmy([...army, entry]);
     };
@@ -338,6 +426,8 @@ export default function ArmyBuilder({ saved }) {
                                         // Count how many of this unit are in the army
                                         const unitCount = army.filter(a => a.name === u.name).length;
 
+                                        const minCost = getMinimumUnitCost(u);
+
                                         return (
                                             <button
                                                 key={u.name}
@@ -354,7 +444,7 @@ export default function ArmyBuilder({ saved }) {
                                                 }}
                                             >
                                                 <span>
-                                                    {u.name} <span className="unit-points">({u.basePoints * u.minModels} pts)</span>
+                                                    {u.name} <span className="unit-points">({minCost} pts)</span>
                                                 </span>
                                                 {unitCount > 0 && <span className="unit-count">{unitCount}</span>}
                                             </button>
@@ -392,8 +482,17 @@ export default function ArmyBuilder({ saved }) {
                                     return (
                                         <div key={u.id} className="unit-card">
                                             <h4 style={{ cursor: "pointer" }}>
-                                                {u.count}× {u.name} ({unitPoints} pts)
+                                                {u.name} ({unitPoints} pts)
                                             </h4>
+
+                                            {/* Model Count */}
+                                            <h5 className="models-heading">models</h5>
+                                            <Stepper
+                                                value={u.count}
+                                                min={u.minModels}
+                                                max={u.maxModels}
+                                                onChange={(val) => updateCount(u.id, val)}
+                                            />
 
 
                                             {/* Statline */}
@@ -427,17 +526,6 @@ export default function ArmyBuilder({ saved }) {
                                             )}
 
 
-                                            {/* Model Count */}
-                                            <input
-                                                type="number"
-                                                min={u.minModels}
-                                                max={u.maxModels}
-                                                value={u.count}
-                                                onChange={(e) =>
-                                                    updateCount(u.id, Number(e.target.value))
-                                                }
-                                            />
-
                                             {/* Rules */}
                                             {u.rules?.length > 0 && (
                                                 <>
@@ -470,7 +558,6 @@ export default function ArmyBuilder({ saved }) {
 
 
                                             {/* Upgrades */}
-                                            <h4>Options:</h4>
                                             <h4>Options:</h4>
                                             <UpgradeOptions
                                                 unit={u}
