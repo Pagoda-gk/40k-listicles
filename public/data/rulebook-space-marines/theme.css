@@ -1,0 +1,97 @@
+@font-face {
+    font-family: 'BebasNeue';
+    src: url('/fonts/BebasNeue-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Scoped faction theme for left panel */
+.panel-left {
+    background-color: #0e0544;
+    /* panel background */
+    color: #81ee77;
+
+    overflow-x: hidden;
+}
+
+.panel-left .unit-button {
+    background-color: #dbd5d5;
+    color: #131413;
+    border: 1px solid #000000;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+}
+
+.panel-left .unit-button:hover {
+    background-color: #c59b40;
+}
+
+
+.panel-left h2 {
+    font-weight: 1;
+    text-align: center;
+    background-color: #363f47;
+    color: #ffffff;
+    font-family: monospace;
+    transform: scaleX(2.1);
+}
+
+.panel-left h1,
+.panel-left h3,
+.panel-left h4 {
+
+    font-weight: 100;
+    text-align: center;
+    background-color: #858a80;
+    color: #364046;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    border-color: #ffffff;
+}
+
+.fixed-button.save {
+    background-color: #5f0a0a;
+    border: 1px solid #c7c7c7;
+    color: #999696;
+    right: 1rem;
+    cursor: pointer;
+    
+}
+
+.fixed-button.home {
+    background-color: #5f0a0a;
+    border: 1px solid #c7c7c7;
+    color: #999696;
+    left: 1rem;
+}
+
+.floating-total {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    text-align: center;
+    z-index: 1500;
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+    background-color: #5f0a0a;
+    border: 1px solid #c7c7c7;
+    color: #999696;
+}
+
+.army-builder .panel-label {
+
+    background-color: #5f0a0a;
+    border: 1px solid #c7c7c7;
+    color: #999696;
+}
+
+.army-builder .panel-label.active {
+    background-color: #c0c0c0 !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+
+}
+:root {
+  /* Colors */
+  --bg-color: #0e0544;
+}

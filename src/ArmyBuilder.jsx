@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import factions from "./data/factions";
 import RuleModal from "./RuleModal";
@@ -11,6 +10,8 @@ import { renderWithReferences } from "./utils/referenceRenderer.jsx";
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { useState, useEffect, useRef } from "react";
+
 
 function Stepper({ value, min = 0, max = Infinity, onChange }) {
     const dec = () => onChange(Math.max(min, value - 1));
@@ -28,6 +29,17 @@ function Stepper({ value, min = 0, max = Infinity, onChange }) {
         </div>
     );
 }
+
+function getUpgradeCost(upgrade, selectedVariantName) {
+    let cost = 0;
+    if (upgrade.pointsByVariant && selectedVariantName) {
+        cost = upgrade.pointsByVariant[selectedVariantName] ?? 0;
+    } else if (typeof upgrade.points === "number") {
+        cost = upgrade.points;
+    }
+    return Number(cost); // ensures NaN never happens
+}
+
 
 
 function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
@@ -54,8 +66,9 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                     return (
                         <div key={up.name} className="upgrade-item">
                             <span className="upgrade-label">
-                                {label} (+{up.points} pts{up.type === "perModel" ? " per model" : ""})
+                                {label} (+{getUpgradeCost(up, unit.selectedVariants?.profile)} pts{up.type === "perModel" ? " per model" : ""})
                             </span>
+
                             <input
                                 type="checkbox"
                                 checked={selected}
@@ -198,6 +211,24 @@ export default function ArmyBuilder({ saved }) {
     if (!faction) return <p>Faction not found!</p>;
 
 
+    useEffect(() => {
+        if (!factionId) return;
+
+        // Remove previous theme
+        const oldTheme = document.getElementById("faction-theme");
+        if (oldTheme) oldTheme.remove();
+
+        // Load new theme
+        const link = document.createElement("link");
+        link.id = "faction-theme";
+        link.rel = "stylesheet";
+        link.href = `/data/${factionId}/theme.css`;  // assumes it's in public/data/factionId/theme.css
+        document.head.appendChild(link);
+
+        return () => link.remove();
+    }, [factionId]);
+
+
     const { units, rules, wargear } = faction;
     const [army, setArmy] = useState(initialArmy);
     const [modalRule, setModalRule] = useState(null);
@@ -216,7 +247,9 @@ export default function ArmyBuilder({ saved }) {
     };
 
     const categoryCounts = categories.reduce((acc, cat) => {
-        acc[cat] = army.filter(u => u.category === cat).length;
+        acc[cat] = army.filter(
+            u => u.category === cat && !u.ignoreSlot   // ✅ skip if ignoreSlot is true
+        ).length;
         return acc;
     }, {});
 
@@ -234,6 +267,10 @@ export default function ArmyBuilder({ saved }) {
             id: Date.now(),
             count: unit.minModels,
             chosenUpgrades: forced,
+            selectedVariants: {
+                profile: unit.variants?.profile?.options[0].name ?? null,
+                armour: unit.variants?.armour?.options[0].name ?? null
+            }
         };
         setArmy([...army, entry]);
     };
@@ -296,15 +333,24 @@ export default function ArmyBuilder({ saved }) {
 
     const totalPoints = army.reduce((sum, u) => {
         const base = u.basePoints * u.count;
-        const upgrades = u.chosenUpgrades.reduce((s, up) => {
-            if (up.type === "perModel") return s + up.points * u.count;
-            return s + up.points * (up.count || 1);
+
+        const selectedVariantName = u.selectedVariants?.profile;
+        const variantExtraPoints =
+            u.variants?.profile?.options.find(p => p.name === selectedVariantName)?.extraPoints || 0;
+
+        const upgrades = (u.chosenUpgrades || []).reduce((s, up) => {
+            const cost = getUpgradeCost(up, selectedVariantName);
+            if (up.type === "perModel") return s + cost * u.count;
+            return s + cost * (up.count || 1);
         }, 0);
-        return sum + base + upgrades;
+
+        return sum + base + variantExtraPoints + upgrades;
     }, 0);
 
 
     const [selectedConditional, setSelectedConditional] = useState(null);
+
+
 
     const activeModifier = selectedConditional
         ? conditionals[selectedConditional]
@@ -348,6 +394,10 @@ export default function ArmyBuilder({ saved }) {
 
 
 
+
+
+
+
     const [activePanel, setActivePanel] = useState("units");
 
     const scrollToPanel = (ref) => {
@@ -378,6 +428,43 @@ export default function ArmyBuilder({ saved }) {
         container.addEventListener("scroll", onScroll);
         return () => container.removeEventListener("scroll", onScroll);
     }, []);
+
+    // --- helpers for middle panel ---
+    // Returns a merged statline array based on selected variant & armour
+    function getMergedStatlines(u) {
+        const profileOpt = u.variants?.profile?.options?.find(
+            o => o.name === u.selectedVariants?.profile
+        );
+        const armourOpt = u.variants?.armour?.options?.find(
+            o => o.name === u.selectedVariants?.armour
+        );
+
+        const wargear = [
+            ...(u.wargear || []),
+            ...(armourOpt?.wargear || [])
+        ];
+        const rules = [
+            ...(u.rules || []),
+            ...(armourOpt?.rules || [])
+        ];
+
+        const variantPoints =
+            (activeProfile?.extraPoints || 0) + (armourOpt?.extraPoints || 0);
+        const unitPoints = u.basePoints * u.count + variantPoints
+
+
+        // if a profile is chosen, start from that; otherwise use the base statline array
+        let rows = profileOpt
+            ? [{ name: profileOpt.name, ...profileOpt.statline }]
+            : u.statline;
+
+        // apply armour overrides (e.g. T +1 for Bike, Sv 2+ for Terminator)
+        if (armourOpt?.statline) {
+            rows = rows.map(r => ({ ...r, ...armourOpt.statline }));
+        }
+
+        return rows;
+    }
 
 
 
@@ -413,7 +500,7 @@ export default function ArmyBuilder({ saved }) {
                 {/* Left Panel */}
                 <div ref={leftRef} className="panel panel-left">
 
-                    <h2>Units</h2>
+                    <h2>Codex</h2>
                     {categories.map((cat) => (
                         <div key={cat}>
                             <h3>{cat}</h3>
@@ -421,11 +508,12 @@ export default function ArmyBuilder({ saved }) {
                                 {units
                                     .filter((u) => u.category === cat)
                                     .map((u) => {
-                                        const full = categoryCounts[cat] >= limits[cat];
+                                        // ✅ If this unit is marked ignoreSlot, never treat the category as full for it
+                                        const full =
+                                            !u.ignoreSlot &&                // <--- add this
+                                            categoryCounts[cat] >= limits[cat];
 
-                                        // Count how many of this unit are in the army
                                         const unitCount = army.filter(a => a.name === u.name).length;
-
                                         const minCost = getMinimumUnitCost(u);
 
                                         return (
@@ -471,12 +559,68 @@ export default function ArmyBuilder({ saved }) {
                             <div key={cat} className="category-section">
                                 <h3>{cat}</h3>
                                 {unitsInCat.map((u) => {
-                                    const unitPoints =
-                                        u.basePoints * u.count +
-                                        u.chosenUpgrades.reduce((s, up) => {
-                                            if (up.type === "perModel") return s + u.count * up.points;
-                                            return s + up.points * (up.count || 1);
-                                        }, 0);
+
+                                    // --- Variant-dependent unit points ---
+                                    const selectedVariantName = u.selectedVariants?.profile;
+
+                                    // Base points
+                                    const basePoints = u.basePoints * u.count;
+
+                                    // Extra points from selected variant itself
+                                    const variantExtraPoints =
+                                        u.variants?.profile?.options.find(p => p.name === selectedVariantName)?.extraPoints || 0;
+
+                                    // Points from chosen upgrades
+                                    const upgradePoints = (u.chosenUpgrades || []).reduce((sum, up) => {
+                                        const cost = getUpgradeCost(up, selectedVariantName);
+                                        if (up.type === "perModel") return sum + cost * u.count;
+                                        return sum + cost * (up.count || 1);
+                                    }, 0);
+
+                                    const unitPoints = basePoints + variantExtraPoints + upgradePoints;
+
+
+                                    const activeProfile = u.variants?.profile?.options.find(
+                                        o => o.name === u.selectedVariants?.profile
+                                    );
+                                    const statlines = activeProfile
+                                        ? [{ name: activeProfile.name, ...activeProfile.statline }]
+                                        : u.statline;
+
+                                    // pick the profile variant first
+                                    const baseProfile =
+                                        u.variants?.profile?.options.find(
+                                            o => o.name === u.selectedVariants?.profile
+                                        );
+
+                                    // then the armour choice
+                                    const armourOpt =
+                                        u.variants?.armour?.options.find(
+                                            o => o.name === u.selectedVariants?.armour
+                                        );
+
+                                    // Start mergedStats with profile statline
+                                    let mergedStats = [
+                                        {
+                                            name: baseProfile?.name || u.name,
+                                            ...baseProfile?.statline,
+                                        },
+                                    ];
+
+                                    u.chosenUpgrades.forEach(up => {
+                                        if (up.statlineModifiers) {
+                                            mergedStats = mergedStats.map(stat => ({
+                                                ...stat,
+                                                ...up.statlineModifiers
+                                            }));
+                                        }
+                                    });
+
+                                    // Compute merged wargear from base unit + chosen upgrades
+                                    const mergedWargear = [
+                                        ...(u.wargear || []),
+                                        ...u.chosenUpgrades.flatMap(up => up.wargear || [])
+                                    ];
 
 
                                     return (
@@ -484,6 +628,38 @@ export default function ArmyBuilder({ saved }) {
                                             <h4 style={{ cursor: "pointer" }}>
                                                 {u.name} ({unitPoints} pts)
                                             </h4>
+
+                                            {u.variants && (
+                                                <div className="variant-selectors" style={{ display: "flex", gap: "1rem" }}>
+                                                    {Object.entries(u.variants).map(([key, cfg]) => (
+                                                        <div key={key} style={{ flex: 1 }}>
+                                                            <label>{cfg.label}: </label>
+                                                            <select
+                                                                value={u.selectedVariants?.[key] || ""}
+                                                                onChange={(e) =>
+                                                                    setArmy(prev =>
+                                                                        prev.map(unit =>
+                                                                            unit.id === u.id
+                                                                                ? {
+                                                                                    ...unit, selectedVariants: {
+                                                                                        ...unit.selectedVariants,
+                                                                                        [key]: e.target.value
+                                                                                    }
+                                                                                }
+                                                                                : unit
+                                                                        )
+                                                                    )
+                                                                }
+                                                            >
+                                                                {cfg.options.map(opt => (
+                                                                    <option key={opt.name} value={opt.name}>{opt.name}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
 
                                             {/* Model Count */}
                                             <h5 className="models-heading">models</h5>
@@ -496,7 +672,7 @@ export default function ArmyBuilder({ saved }) {
 
 
                                             {/* Statline */}
-                                            {u.statline && Array.isArray(u.statline) && (
+                                            {(Array.isArray(u.statline) || u.variants?.profile?.options) && (
                                                 <table className="unit-table">
                                                     <thead>
                                                         <tr>
@@ -513,48 +689,63 @@ export default function ArmyBuilder({ saved }) {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {u.statline.map((profile, i) => (
+                                                        {[
+                                                            // base profiles (if any)
+                                                            ...(Array.isArray(u.statline) ? u.statline : []),
+
+                                                            // every profile variant from the “Role” dropdown
+                                                            ...(u.variants?.profile?.options?.map(opt => ({
+                                                                name: opt.name,
+                                                                ...opt.statline
+                                                            })) || [])
+                                                        ].map((profile, i) => (
                                                             <tr key={i}>
                                                                 <td className="unit-name">{profile.name}</td>
                                                                 {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map(stat => (
                                                                     <td key={stat}>{profile[stat]}</td>
+
                                                                 ))}
                                                             </tr>
                                                         ))}
                                                     </tbody>
                                                 </table>
-                                            )}
+                                            )
+                                            }
 
 
                                             {/* Rules */}
-                                            {u.rules?.length > 0 && (
-                                                <>
-                                                    <h4>Rules:</h4>
-                                                    <div className="army-panel">
-                                                        {renderWithReferences(u.rules.join(", "), registry, openRuleModal)}
-                                                    </div>
-                                                </>
-                                            )}
+                                            {
+                                                u.rules?.length > 0 && (
+                                                    <>
+                                                        <h4>Rules:</h4>
+                                                        <div className="army-panel">
+                                                            {renderWithReferences(u.rules.join(", "), registry, openRuleModal)}
+                                                        </div>
+                                                    </>
+                                                )
+                                            }
 
                                             {/* Wargear */}
-                                            {(u.wargear?.length || u.chosenUpgrades?.some(up => up.wargear)) > 0 && (
-                                                <>
-                                                    <h4>Wargear:</h4>
-                                                    <div>
-                                                        <div className="army-panel">
-                                                            {renderWithReferences(
-                                                                Array.from(
-                                                                    new Set([
-                                                                        ...(u.wargear || []),
-                                                                        ...(u.chosenUpgrades?.flatMap(up => up.wargear || []) || []),
-                                                                    ])
-                                                                ).join(", "),
-                                                                registry,
-                                                                openRuleModal)}
+                                            {
+                                                (u.wargear?.length || u.chosenUpgrades?.some(up => up.wargear)) > 0 && (
+                                                    <>
+                                                        <h4>Wargear:</h4>
+                                                        <div>
+                                                            <div className="army-panel">
+                                                                {renderWithReferences(
+                                                                    Array.from(
+                                                                        new Set([
+                                                                            ...(u.wargear || []),
+                                                                            ...(u.chosenUpgrades?.flatMap(up => up.wargear || []) || []),
+                                                                        ])
+                                                                    ).join(", "),
+                                                                    registry,
+                                                                    openRuleModal)}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </>
-                                            )}
+                                                    </>
+                                                )
+                                            }
 
 
                                             {/* Upgrades */}
@@ -621,7 +812,27 @@ export default function ArmyBuilder({ saved }) {
                                 <h3>{cat}</h3>
                                 {catUnits.map((u) => {
 
-                                    // Base wargear as before
+                                    // --- Compute final wargear with additions/removals ---
+                                    let finalWargear = [...(u.wargear || [])];
+
+                                    (u.chosenUpgrades || []).forEach(up => {
+                                        // Remove any gear replaced by the upgrade
+                                        if (up.removes) {
+                                            finalWargear = finalWargear.filter(g => !up.removes.includes(g));
+                                        }
+
+                                        // Add gear from the upgrade
+                                        if (up.wargear) {
+                                            const newGear = up.wargear.map(name =>
+                                                up.type === "limited" && up.count > 1
+                                                    ? `${name} x${up.count}`
+                                                    : name
+                                            );
+                                            finalWargear.push(...newGear);
+                                        }
+                                    });
+
+
                                     const baseGear = u.wargear || [];
 
                                     // Add upgrades’ wargear, but for limited ones include “ xN” if N>1
@@ -635,8 +846,41 @@ export default function ArmyBuilder({ saved }) {
                                         );
                                     });
 
-                                    // Remove duplicates while preserving our xN text
-                                    const finalWargear = Array.from(new Set([...baseGear, ...upgradeGear]));
+                                    // Determine the statline to display for this unit
+                                    let displayedStatlines = [];
+
+                                    if (u.variants?.profile) {
+                                        // Find the selected variant
+                                        const selectedProfileName = u.selectedVariants?.profile;
+                                        const profileOption = u.variants.profile.options.find(p => p.name === selectedProfileName);
+
+                                        if (profileOption) {
+                                            displayedStatlines.push({
+                                                name: profileOption.name,
+                                                ...profileOption.statline
+                                            });
+                                        }
+                                    } else if (u.statline) {
+                                        // Fallback to the original statline array
+                                        displayedStatlines = u.statline;
+                                    }
+
+
+
+                                    // Remove duplicates but preserve " xN" counts
+                                    finalWargear = Array.from(new Set(finalWargear));
+
+                                    // Filter displayed statlines based on whether the unit has taken the upgrade that grants them
+                                    const filteredStatlines = displayedStatlines.filter(profile => {
+                                        // If there’s a chosen upgrade with count > 0 that grants this profile, keep it
+                                        const hasUpgrade = u.chosenUpgrades?.some(up => up.count > 0 && up.grantsProfile === profile.name);
+
+                                        // Also keep it if it’s the base profile (not variant-dependent)
+                                        const isBaseProfile = !u.variants?.profile?.options?.some(opt => opt.name === profile.name);
+
+                                        return hasUpgrade || isBaseProfile;
+                                    });
+
 
 
                                     return (
@@ -646,7 +890,7 @@ export default function ArmyBuilder({ saved }) {
 
 
                                             {/* Statline */}
-                                            {u.statline && Array.isArray(u.statline) && (
+                                            {displayedStatlines.length > 0 && (
                                                 <table className="unit-table">
                                                     <thead>
                                                         <tr>
@@ -663,14 +907,37 @@ export default function ArmyBuilder({ saved }) {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {u.statline.map((profile, i) => (
-                                                            <tr key={i}>
-                                                                <td className="unit-name">{profile.name}</td>
-                                                                {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map(stat => (
-                                                                    <td key={stat}>{profile[stat]}</td>
-                                                                ))}
-                                                            </tr>
-                                                        ))}
+                                                        {displayedStatlines
+                                                            // filter out profiles requiring an upgrade that hasn't been taken
+                                                            .filter(profile => {
+                                                                // Does any upgrade match this profile name?
+                                                                const needsUpgrade = (u.upgrades || []).some(
+                                                                    up => up.name.replace(/\[|\]/g, "") === profile.name
+                                                                );
+                                                                if (!needsUpgrade) return true; // base profile → always show
+                                                                return u.chosenUpgrades.some(
+                                                                    cu => cu.name.replace(/\[|\]/g, "") === profile.name && cu.count > 0
+                                                                );
+
+                                                            })
+                                                            .map((profile, i) => {
+                                                                let modifiedProfile = { ...profile };
+                                                                // apply statlineModifiers from chosen upgrades
+                                                                (u.chosenUpgrades || []).forEach(up => {
+                                                                    if (up.statlineModifiers) {
+                                                                        modifiedProfile = { ...modifiedProfile, ...up.statlineModifiers };
+                                                                    }
+                                                                });
+
+                                                                return (
+                                                                    <tr key={i}>
+                                                                        <td className="unit-name">{modifiedProfile.name}</td>
+                                                                        {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map(stat => (
+                                                                            <td key={stat}>{modifiedProfile[stat]}</td>
+                                                                        ))}
+                                                                    </tr>
+                                                                );
+                                                            })}
                                                     </tbody>
                                                 </table>
                                             )}
@@ -763,6 +1030,7 @@ export default function ArmyBuilder({ saved }) {
                 />
             </div >
         </div>
+
     );
 
 }

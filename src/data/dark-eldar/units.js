@@ -162,7 +162,7 @@ export const units = [
         wargear: ["[Splinter Pistol]", "[Close Combat Weapon]"],
         upgrades: [
             {
-                type: "single", name: "[Succubus]", points: 8,
+                type: "single", name: "[Succubus]", points: 8, 
                 children: [
                     { type: "single", name: "Extra Wargear 1", points: 5, wargear: ["Blaster (Succubus)"]  },
                     { type: "single", name: "Extra Wargear 2", points: 5, wargear: ["Something (Succubus)"]  },

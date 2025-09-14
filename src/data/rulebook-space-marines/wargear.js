@@ -3,11 +3,6 @@ export const wargear = [
 
   //Assault
 
-  {
-    name: "Power Fist",
-    description: 'The user may double it\'s Strength characteristic up to a maximum of 10 when rolling to wound. This weapon ignores all [Armour Saves]. The user always strikes last.',
-    cost: 25,
-  },
     {
     name: "Chainfist",
     description: 'The user may double it\'s Strength characteristic up to a maximum of 10 when rolling to wound. This weapon ignores all [Armour Saves]. The user always strikes last.',
@@ -18,6 +13,20 @@ export const wargear = [
     description: 'Counts as a [Power Weapon] and ignores all [Armour Saves].',
     cost: 25,
   },
+    {
+    name: "Servo Arm",
+    description: `Counts as [Power Fist]. The User may double the Strength characteristic up to a maximum of 10 when rolling to [Wound]
+    This weapon always ignores [Armour Saves]
+    This weapon always strikes last`,
+  },
+        {
+    name: "Power Fist",
+    description: `The User may double the Strength characteristic up to a maximum of 10 when rolling to [Wound]
+    This weapon always ignores [Armour Saves]
+    This weapon always strikes last`,
+  },
+
+
 
   //Ranged
   {
@@ -57,6 +66,10 @@ export const wargear = [
     description: "na.",
     cost: 10,
   },
+    {
+    name: "Combi-Weapon",
+    description: `This is essentially two weapons in one, and the weilder may choose which profile to use.  `,
+  },
 
 
   //Wargear
@@ -70,5 +83,12 @@ export const wargear = [
   {
 name: "Storm Shield",
 description: " The user gains a 4+ [Invulnerable Save]."
-  }
+  },
+
+      {
+    name: "Terminator Armour",
+    description: `This model may move and fire with [Heavy Weapons], however the model may only [Consolidate] after winning combat.
+    As long as all models in the unit are wearing Terminator Armour the squad may set up using [Deep Strike], as long as the game allows it.
+    NOTE a Hero may only take this if the army list has a Terminator unit.`,
+  },
 ];

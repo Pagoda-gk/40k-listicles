@@ -16,6 +16,17 @@
   --hover-bg: #f0efe9;
   /* subtle hover shading */
 
+  --dark-bg: #333;
+  /* darker grey for controls */
+  --dark-text: #fff;
+  /* white text for contrast */
+  --medium-bg: #555;
+  /* medium grey for hover / panels */
+  --accent-bg: #222;
+  /* very dark accent for stepper buttons */
+
+
+
   /* Typography */
   --font-family: "Georgia", "Times New Roman", serif;
   --line-height: 1.5;
@@ -69,6 +80,7 @@ h3,
 h4 {
   color: var(--header-color);
   font-weight: 600;
+  
 }
 
 a {
@@ -97,7 +109,9 @@ a:hover {
 .modal-content {
   background: #222;
   padding: 1rem 2rem;
-  border-radius: 8px;
+  border-radius: 0;
+  /* remove rounded corners */
+  border: 2px solid #111;
 }
 
 
@@ -127,8 +141,9 @@ a:hover {
 
 .panel {
   background-color: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: 0;
+  /* remove rounded corners */
+  border: 2px solid #111;
   padding: 1rem;
   box-sizing: border-box;
   overflow-y: auto;
@@ -168,8 +183,9 @@ button,
   font-family: inherit;
   font-size: 1em;
   font-weight: 500;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
+  border-radius: 0;
+  /* remove rounded corners */
+  border: 2px solid #111;
   padding: 0.5rem 1rem;
   background-color: var(--panel-bg);
   color: var(--text-color);
@@ -186,12 +202,14 @@ button:hover,
 .unit-list {
   display: flex;
   flex-direction: column;
+  text-align: center;
   gap: 0.5rem;
 }
 
 .unit-card {
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: 0;
+  /* remove rounded corners */
+  border: 2px solid #111;
   padding: 0.5rem;
   margin-bottom: 0.5rem;
   background-color: var(--panel-bg);
@@ -217,8 +235,10 @@ button:hover,
   padding: 0.5rem 0.8rem;
   background: var(--panel-bg);
   color: var(--text-color);
+  border-radius: 0;
+  /* remove rounded corners */
+  border: 2px solid #111;
   font-weight: bold;
-  border-radius: var(--border-radius);
   text-decoration: none;
   z-index: 1600;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
@@ -259,6 +279,9 @@ button:hover,
 .upgrade-option {
   display: block;
   margin-bottom: 0.25rem;
+    background: var(--dark-bg);
+  color: var(--text-color);
+
 }
 
 .upgrade-list {
@@ -541,11 +564,13 @@ button:hover,
 
 .panel-labels {
   display: flex;
+  text-align: center;
   position: relative;
   justify-content: flex-start;
   /* align items naturally */
   gap: 1rem;
   /* space between labels */
+  
 }
 
 .panel-label {
@@ -582,20 +607,28 @@ button:hover,
 .stepper {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;        /* small gap between buttons and value */
+  gap: 0.25rem;
+  /* small gap between buttons and value */
   margin-top: 0;
   margin-bottom: 0.25rem;
 }
 
 .stepper button {
-  width: 1.5rem;       /* match your smaller size */
+  border-radius: 0;
+  /* remove rounded corners */
+  border: 2px solid #111;
+  width: 1.5rem;
+  /* match your smaller size */
   height: 1.5rem;
-  font-size: 1rem;     /* slightly smaller font than before */
+  font-size: 1rem;
+  /* slightly smaller font than before */
   line-height: 1;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0;
+  background-color: var(--panel-bg);
+  color: var(--text-color);
 }
 
 .stepper-value {
@@ -606,14 +639,18 @@ button:hover,
 }
 
 .models-heading {
-  margin-bottom: 2px;   
+  margin-bottom: 2px;
 }
 
 .upgrade-item {
   display: flex;
-  flex-direction: column; /* stack label and input vertically */
-  align-items: flex-start; /* left-align everything */
+  flex-direction: column;
+  /* stack label and input vertically */
+  align-items: flex-start;
+  /* left-align everything */
   margin-bottom: 0.5rem;
+  border-radius: 0;
+  border: 2px solid #111;
 }
 
 .upgrade-label {
@@ -622,9 +659,11 @@ button:hover,
 }
 
 .upgrade-input-checkbox {
-  width: 1.4rem;   /* default is ~1rem, so slightly larger */
+  width: 1.4rem;
   height: 1.4rem;
-  accent-color: #111; /* makes the checkmark darker and visible */
+  accent-color: #fff;
+  background-color: var(--dark-bg);
+  border: 2px solid var(--border-color);
 }
 
 .upgrade-stepper {
@@ -649,4 +688,94 @@ button:hover,
 .army-panel a:focus {
   color: #000 !important;
   background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* =========================
+   3rd-edition styling tweaks
+   ========================= */
+
+/* Mid-grey headers with white text */
+h1,
+h2,
+h3,
+h4,
+.section-header {
+  background-color: var(--medium-bg); /* mid grey */
+  color: var(--dark-text);            /* white */
+  padding: 0.4rem 0.6rem;
+  border: 3px double var(--border-color); /* double border evokes old codex look */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Buttons: very dark grey with white lettering/icons */
+button.dark,
+.unit-button.dark,
+.fixed-button.dark,
+.stepper button.dark {
+  background-color: var(--dark-bg); /* #333 by default */
+  color: var(--dark-text);          /* white */
+  border: 3px solid #000;
+}
+button.dark:hover,
+.unit-button.dark:hover,
+.fixed-button.dark:hover,
+.stepper button.dark:hover {
+  background-color: #111; /* even darker on hover */
+  border-color: #000;
+}
+
+/* You can add .dark to specific buttons in JSX:
+   <button className="unit-button dark">Add Unit</button>
+*/
+
+/* Panels or cards with a thicker/double border */
+.panel.thick,
+.unit-card.thick,
+.upgrade-item.thick {
+  border: 4px double var(--border-color);
+  padding: 1rem;
+}
+
+/* Example usage in React:
+   <div className="panel thick">…</div>
+*/
+
+/* Optional: give top nav a darker feel to match */
+.top-nav {
+  background-color: var(--med
+  )}
+  /* =========================
+   Left-align all text
+   ========================= */
+
+/* Root container no longer forces center alignment */
+#root {
+  text-align: left;
+}
+
+/* Common text blocks (rules, wargear, etc.) */
+body,
+.panel,
+.unit-card,
+.upgrade-item,
+.army-panel,
+.unit-list,
+.unit-table,
+.modal-content,
+.section-container,
+.section-header,
+.faction-rules,
+.wargear,
+.rules {
+  text-align: left;
+}
+
+h1,
+h2,
+h3,
+h4 {
+
+  font-weight: 600;
+text-align:center;  
 }
