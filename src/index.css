@@ -615,8 +615,9 @@ button:hover,
 
 .stepper button {
   border-radius: 0;
-  /* remove rounded corners */
-  border: 2px solid #111;
+  background-color: #000;     /* solid black background */
+  color: #fff;                /* white + and – symbols */
+  border: 2px solid #000;   
   width: 1.5rem;
   /* match your smaller size */
   height: 1.5rem;
@@ -629,6 +630,11 @@ button:hover,
   padding: 0;
   background-color: var(--panel-bg);
   color: var(--text-color);
+}
+
+.stepper button:hover {
+  background-color: #111;     /* slightly lighter on hover */
+  border-color: #111;
 }
 
 .stepper-value {
@@ -779,3 +785,69 @@ h4 {
   font-weight: 600;
 text-align:center;  
 }
+
+/* Every row: label left, control right */
+.upgrade-row {
+  display: flex;
+  justify-content: space-between; /* pushes control to far right */
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Optional: last row without border */
+.upgrade-row:last-child {
+  border-bottom: none;
+}
+
+/* Right-hand column wrapper */
+.upgrade-control {
+  display: flex;
+  align-items: center;
+}
+
+/* Make checkboxes and steppers consistent width if desired */
+.upgrade-control input[type="checkbox"],
+.upgrade-control .stepper {
+  min-width: 3rem;   /* or whatever keeps them aligned */
+  justify-content: flex-end;
+}
+
+/* Remove internal borders when inside a grouped card */
+.upgrade-group-card .upgrade-row {
+  border-bottom: none;
+}
+
+/* Give the card itself a single border */
+.upgrade-group-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius, 6px);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  background: var(--panel-bg, #fff);
+}
+
+
+.upgrade-option-row {
+  display: flex;
+  align-items: center;   /* vertically centers checkbox and text */
+  justify-content: space-between; /* optional: pushes checkbox to right */
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.upgrade-option-row .upgrade-input-checkbox {
+  /* optional: force checkbox on right */
+  order: 2; /* moves checkbox after the text in DOM if needed */
+  margin-left: auto; /* pushes checkbox to the far right */
+}
+
+.unit-type {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #444;                 /* subtle, tweak as desired */
+  margin-bottom: 0.25rem;      /* small gap before points or rules */
+}
+
+

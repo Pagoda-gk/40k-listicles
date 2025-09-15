@@ -7,7 +7,7 @@
 
 /* Scoped faction theme for left panel */
 .panel-left {
-    background-color: #0e0544;
+    background-color: #261970;
     /* panel background */
     color: #81ee77;
 
@@ -29,10 +29,9 @@
 .panel-left h2 {
     font-weight: 1;
     text-align: center;
-    background-color: #363f47;
+    background-color: #4e3612;
     color: #ffffff;
-    font-family: monospace;
-    transform: scaleX(2.1);
+    font-family:'Times New Roman', Times, serif
 }
 
 .panel-left h1,
@@ -41,15 +40,15 @@
 
     font-weight: 100;
     text-align: center;
-    background-color: #858a80;
+    background-color: #b4b4b4;
     color: #364046;
     font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    border-color: #ffffff;
+    border-color: #364046;
 }
 
 .fixed-button.save {
-    background-color: #5f0a0a;
-    border: 1px solid #c7c7c7;
+    background-color: #3f3022;
+    border: 1px solid #504031;
     color: #999696;
     right: 1rem;
     cursor: pointer;
@@ -57,8 +56,8 @@
 }
 
 .fixed-button.home {
-    background-color: #5f0a0a;
-    border: 1px solid #c7c7c7;
+    background-color: #3f3022;
+    border: 1px solid #504031;
     color: #999696;
     left: 1rem;
 }
@@ -73,15 +72,15 @@
     text-align: center;
     z-index: 1500;
     box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
-    background-color: #5f0a0a;
-    border: 1px solid #c7c7c7;
+    background-color: #3f3022;
+    border: 1px solid #504031;
     color: #999696;
 }
 
 .army-builder .panel-label {
 
-    background-color: #5f0a0a;
-    border: 1px solid #c7c7c7;
+    background-color: #3f3022;
+    border: 1px solid #504031;
     color: #999696;
 }
 
@@ -93,5 +92,5 @@
 }
 :root {
   /* Colors */
-  --bg-color: #0e0544;
+  --bg-color: #3f3022;
 }

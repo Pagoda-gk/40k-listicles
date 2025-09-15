@@ -19,5 +19,9 @@ export const gameRules = [
   {
     name: "Power Weapon",
     description: "Uses wielders base strength, but ignores [Armour Saves].",
+  },
+    {
+    name: "Infiltrators",
+    description: 'Makes use of special rules for Infiltrators as noted by the [Mission].'
   }
 ];
