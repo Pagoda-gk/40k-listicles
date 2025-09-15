@@ -1,31 +1,12 @@
 // src/data/wargear.js
 export const wargear = [
 
-    //Single handed weapons
-      {
-    name: "Agoniser",
-    description: "24\" Str 3, AP 5, Rapid Fire.",
-    cost: 20,
-  },
-    {
-    name: "Close Combat Weapon",
-    description: "24\" Str 3, AP 5, Rapid Fire.",
-    cost: 1,
-  },
-    {
-    name: "Destructor",
-    description: "24\" Str 3, AP 5, Rapid Fire.",
-    cost: 15,
-  },
+    //Hand to Hand weapons
+    
     {
     name: "Poisoned Blades",
-    description: "24\" Str 3, AP 5, Rapid Fire.",
+    description: "Always wound on a 2+. Target may take saves as normal.",
     cost: 5,
-  },
-    {
-    name: "Power Weapon",
-    description: "24\" Str 3, AP 5, Rapid Fire.",
-    cost: 15,
   },
     {
     name: "Scissorhand",
@@ -43,7 +24,7 @@ export const wargear = [
     cost: 5,
   },
 
-//Two handed weapons
+//Ranged weapons
 
     {
     name: "Hellglaive",
@@ -60,11 +41,7 @@ export const wargear = [
     description: "24\" Str 3, AP 5, Rapid Fire.",
     cost: 10,
   },
-
-
-  //Wargear
-
-    {
+      {
     name: "Splinter Cannon",
     description: "24\" Str 4, AP 5, Assault 4.",
     cost: 10,
@@ -84,6 +61,14 @@ export const wargear = [
     description: "48\" Str 9, AP 2, Heavy 1.",
     cost: 10,
   },
+  {
+    name: "Haemonculus Flamer",
+    description: 'Template, Str 4, AP 5, Assault 1. A unit that takes a casualty from this weapon must immediately pass a [Morale Check] or [Fall Back]' 
+  },
+
+  //Wargear
+
+
   // unit specific
       {
     name: "Wych Weapons",

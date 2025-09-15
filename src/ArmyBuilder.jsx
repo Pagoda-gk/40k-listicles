@@ -210,8 +210,8 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                     const count = up.maxPer ?? 1;
                     const heading =
                         count === 1
-                            ? "One model may take one of the following:"
-                            : `Up to ${count} models may take one of the following:`;
+                            ? "May take one of the following:"
+                            : `May take up to ${count} of:`;
 
                     return (
                         <div key={up.name} className="upgrade-group-card">
@@ -306,7 +306,9 @@ function getMinimumUnitCost(unit) {
 }
 
 
-export default function ArmyBuilder({ saved }) {
+export default function Listicles({ saved }) {
+
+    const APP_NAME = "Listicles";
 
     const { factionId, listIndex } = useParams();
 
@@ -351,7 +353,14 @@ export default function ArmyBuilder({ saved }) {
 
 
     const { units, rules, wargear } = faction;
-    const [army, setArmy] = useState(initialArmy);
+    const [army, setArmy] = useState(() => {
+        const saved = localStorage.getItem("army");
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    useEffect(() => {
+        localStorage.setItem("army", JSON.stringify(army));
+    }, [army]);
     const [modalRule, setModalRule] = useState(null);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [saveName, setSaveName] = useState("");
@@ -496,7 +505,7 @@ export default function ArmyBuilder({ saved }) {
             if (i < panelOrder.length - 1) {
                 const nextPanel = panelOrder[i + 1];
                 setActivePanel(nextPanel);
-                scrollToPanel(refs[i + 1]);
+                scrollToPanel(panelRefs[nextPanel], nextPanel);
             }
         },
         onSwipedRight: () => {
@@ -504,7 +513,7 @@ export default function ArmyBuilder({ saved }) {
             if (i > 0) {
                 const prevPanel = panelOrder[i - 1];
                 setActivePanel(prevPanel);
-                scrollToPanel(refs[i - 1]);
+                scrollToPanel(panelRefs[prevPanel], prevPanel);
             }
         },
         delta: 90,
@@ -512,25 +521,32 @@ export default function ArmyBuilder({ saved }) {
     });
 
 
-
-
-
-
-
-
+    // store refs for each panel
+    const panelRefs = {
+        units: leftRef,
+        list: middleRef,
+        reference: rightRef,
+    };
 
     const [activePanel, setActivePanel] = useState("units");
 
-    const scrollToPanel = (ref) => {
-        if (ref.current) {
-            const container = containerRef.current;
-            container.scrollTo({
+    const scrollToPanel = (ref, key) => {
+        if (ref.current && containerRef.current) {
+            containerRef.current.scrollTo({
                 left: ref.current.offsetLeft,
                 behavior: "smooth",
             });
+            // reset that panel's vertical scroll
+            const panel = panelRefs[key]?.current;
+            if (panel) panel.scrollTop = 0;
         }
     };
 
+    // wherever you change activePanel:
+    const goToPanel = (key) => {
+        setActivePanel(key);
+        scrollToPanel(panelRefs[key], key);
+    };
 
 
 
@@ -586,26 +602,14 @@ export default function ArmyBuilder({ saved }) {
 
         return rows;
     }
-
-
+    const panelLabels = {
+        units: "Codex",
+        list: "List",
+        reference: "Ref",
+    };
 
     return (
         <div className="army-builder" {...handlers}>
-            <nav className="top-nav">
-                <div className="panel-labels">
-                    {panelOrder.map((panel) => (
-                        <span key={panel} className={`panel-label ${activePanel === panel ? "active" : ""}`}>
-                            {panel === "units" ? "Units" :
-                                panel === "list" ? "Army List" :
-                                    panel === "reference" ? "Army Reference" : panel}
-                        </span>
-                    ))}
-                    <div
-                        className="panel-indicator"
-                        style={{ transform: `translateX(${panelOrder.indexOf(activePanel) * 33.33}%)` }}
-                    />
-                </div>
-            </nav>
 
             {/* Floating Army Total */}
             <div className="floating-total">
@@ -617,6 +621,7 @@ export default function ArmyBuilder({ saved }) {
             <button onClick={() => setShowSaveDialog(true)} className="fixed-button save">Save</button>
 
             <div ref={containerRef} className="panels-wrapper">
+
 
                 {/* Left Panel */}
                 <div ref={leftRef} className="panel panel-left">
@@ -750,6 +755,12 @@ export default function ArmyBuilder({ saved }) {
                                                 {u.name} ({unitPoints} pts)
                                             </h4>
 
+                                            {/* Action Buttons */}
+                                            <div className="unit-actions">
+                                                <button onClick={() => resetUnit(u.id)}>Reset</button>
+                                                <button onClick={() => removeUnit(u.id)}>Remove</button>
+                                            </div>
+
                                             {u.variants && (
                                                 <div className="variant-selectors" style={{ display: "flex", gap: "1rem" }}>
                                                     {Object.entries(u.variants).map(([key, cfg]) => (
@@ -836,72 +847,72 @@ export default function ArmyBuilder({ saved }) {
                                                             ))}
                                                         </tbody>
                                                     </table>
-                                                ):
+                                                ) :
 
 
-                                                u.isVehicle ? (
-                                                    // ---------- Vehicle statline ----------
-                                                    <table className="unit-table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Name</th>
-                                                                <th>Front Armour</th>
-                                                                <th>Side Armour</th>
-                                                                <th>Rear Armour</th>
-                                                                <th>BS</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {profiles.map((profile, i) => (
-                                                                <tr key={i}>
-                                                                    <td className="unit-name">{profile.name}</td>
-                                                                    {["armourFront", "armourSide", "armourRear", "BS"].map(stat => (
-                                                                        <td key={stat}>{profile[stat]}</td>
-                                                                    ))}
+                                                    u.isVehicle ? (
+                                                        // ---------- Vehicle statline ----------
+                                                        <table className="unit-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Name</th>
+                                                                    <th>Front Armour</th>
+                                                                    <th>Side Armour</th>
+                                                                    <th>Rear Armour</th>
+                                                                    <th>BS</th>
                                                                 </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                ) : (
+                                                            </thead>
+                                                            <tbody>
+                                                                {profiles.map((profile, i) => (
+                                                                    <tr key={i}>
+                                                                        <td className="unit-name">{profile.name}</td>
+                                                                        {["armourFront", "armourSide", "armourRear", "BS"].map(stat => (
+                                                                            <td key={stat}>{profile[stat]}</td>
+                                                                        ))}
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    ) : (
 
 
-                                                    <table className="unit-table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Name</th>
-                                                                <th>WS</th>
-                                                                <th>BS</th>
-                                                                <th>S</th>
-                                                                <th>T</th>
-                                                                <th>W</th>
-                                                                <th>I</th>
-                                                                <th>A</th>
-                                                                <th>Ld</th>
-                                                                <th>Sv</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {[
-                                                                // base profiles (if any)
-                                                                ...(Array.isArray(u.statline) ? u.statline : []),
-
-                                                                // every profile variant from the “Role” dropdown
-                                                                ...(u.variants?.profile?.options?.map(opt => ({
-                                                                    name: opt.name,
-                                                                    ...opt.statline
-                                                                })) || [])
-                                                            ].map((profile, i) => (
-                                                                <tr key={i}>
-                                                                    <td className="unit-name">{profile.name}</td>
-                                                                    {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map(stat => (
-                                                                        <td key={stat}>{profile[stat]}</td>
-
-                                                                    ))}
+                                                        <table className="unit-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Name</th>
+                                                                    <th>WS</th>
+                                                                    <th>BS</th>
+                                                                    <th>S</th>
+                                                                    <th>T</th>
+                                                                    <th>W</th>
+                                                                    <th>I</th>
+                                                                    <th>A</th>
+                                                                    <th>Ld</th>
+                                                                    <th>Sv</th>
                                                                 </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                );
+                                                            </thead>
+                                                            <tbody>
+                                                                {[
+                                                                    // base profiles (if any)
+                                                                    ...(Array.isArray(u.statline) ? u.statline : []),
+
+                                                                    // every profile variant from the “Role” dropdown
+                                                                    ...(u.variants?.profile?.options?.map(opt => ({
+                                                                        name: opt.name,
+                                                                        ...opt.statline
+                                                                    })) || [])
+                                                                ].map((profile, i) => (
+                                                                    <tr key={i}>
+                                                                        <td className="unit-name">{profile.name}</td>
+                                                                        {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map(stat => (
+                                                                            <td key={stat}>{profile[stat]}</td>
+
+                                                                        ))}
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    );
                                             })()}
 
 
@@ -924,15 +935,7 @@ export default function ArmyBuilder({ saved }) {
                                                         <h4>Wargear:</h4>
                                                         <div>
                                                             <div className="army-panel">
-                                                                {renderWithReferences(
-                                                                    Array.from(
-                                                                        new Set([
-                                                                            ...(u.wargear || []),
-                                                                            ...(u.chosenUpgrades?.flatMap(up => up.wargear || []) || []),
-                                                                        ])
-                                                                    ).join(", "),
-                                                                    registry,
-                                                                    openRuleModal)}
+                                                                {renderWithReferences(u.wargear.join(", "), registry, openRuleModal)}
                                                             </div>
                                                         </div>
                                                     </>
@@ -950,12 +953,6 @@ export default function ArmyBuilder({ saved }) {
                                                 openRuleModal={openRuleModal}
                                             />
 
-
-                                            {/* Action Buttons */}
-                                            <div className="unit-actions">
-                                                <button onClick={() => resetUnit(u.id)}>Reset</button>
-                                                <button onClick={() => removeUnit(u.id)}>Remove</button>
-                                            </div>
                                         </div>
                                     );
                                 })}
@@ -1131,102 +1128,102 @@ export default function ArmyBuilder({ saved }) {
                                                                 })}
                                                         </tbody>
                                                     </table>
-                                                ):
-                                                u.isVehicle ? (
-                                                    // ---------- Vehicle statline ----------
-                                                    <table className="unit-table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Name</th>
-                                                                <th>Front Armour</th>
-                                                                <th>Side Armour</th>
-                                                                <th>Rear Armour</th>
-                                                                <th>BS</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {displayedStatlines
-                                                                .filter(profile => {
-                                                                    const needsUpgrade = (u.upgrades || []).some(
-                                                                        up => up.name.replace(/\[|\]/g, "") === profile.name
-                                                                    );
-                                                                    if (!needsUpgrade) return true;
-                                                                    return u.chosenUpgrades.some(
-                                                                        cu =>
-                                                                            cu.name.replace(/\[|\]/g, "") === profile.name &&
-                                                                            cu.count > 0
-                                                                    );
-                                                                })
-                                                                .map((profile, i) => {
-                                                                    let modifiedProfile = { ...profile };
-                                                                    (u.chosenUpgrades || []).forEach(up => {
-                                                                        if (up.statlineModifiers) {
-                                                                            modifiedProfile = { ...modifiedProfile, ...up.statlineModifiers };
-                                                                        }
-                                                                    });
+                                                ) :
+                                                    u.isVehicle ? (
+                                                        // ---------- Vehicle statline ----------
+                                                        <table className="unit-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Name</th>
+                                                                    <th>Front Armour</th>
+                                                                    <th>Side Armour</th>
+                                                                    <th>Rear Armour</th>
+                                                                    <th>BS</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {displayedStatlines
+                                                                    .filter(profile => {
+                                                                        const needsUpgrade = (u.upgrades || []).some(
+                                                                            up => up.name.replace(/\[|\]/g, "") === profile.name
+                                                                        );
+                                                                        if (!needsUpgrade) return true;
+                                                                        return u.chosenUpgrades.some(
+                                                                            cu =>
+                                                                                cu.name.replace(/\[|\]/g, "") === profile.name &&
+                                                                                cu.count > 0
+                                                                        );
+                                                                    })
+                                                                    .map((profile, i) => {
+                                                                        let modifiedProfile = { ...profile };
+                                                                        (u.chosenUpgrades || []).forEach(up => {
+                                                                            if (up.statlineModifiers) {
+                                                                                modifiedProfile = { ...modifiedProfile, ...up.statlineModifiers };
+                                                                            }
+                                                                        });
 
-                                                                    return (
-                                                                        <tr key={i}>
-                                                                            <td className="unit-name">{modifiedProfile.name}</td>
-                                                                            {["armourFront", "armourSide", "armourRear", "BS"].map(stat => (
-                                                                                <td key={stat}>{modifiedProfile[stat]}</td>
-                                                                            ))}
-                                                                        </tr>
-                                                                    );
-                                                                })}
-                                                        </tbody>
-                                                    </table>
-                                                ) : (
-                                                    <table className="unit-table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Name</th>
-                                                                <th>WS</th>
-                                                                <th>BS</th>
-                                                                <th>S</th>
-                                                                <th>T</th>
-                                                                <th>W</th>
-                                                                <th>I</th>
-                                                                <th>A</th>
-                                                                <th>Ld</th>
-                                                                <th>Sv</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {displayedStatlines
-                                                                // filter out profiles requiring an upgrade that hasn't been taken
-                                                                .filter(profile => {
-                                                                    // Does any upgrade match this profile name?
-                                                                    const needsUpgrade = (u.upgrades || []).some(
-                                                                        up => up.name.replace(/\[|\]/g, "") === profile.name
-                                                                    );
-                                                                    if (!needsUpgrade) return true; // base profile → always show
-                                                                    return u.chosenUpgrades.some(
-                                                                        cu => cu.name.replace(/\[|\]/g, "") === profile.name && cu.count > 0
-                                                                    );
+                                                                        return (
+                                                                            <tr key={i}>
+                                                                                <td className="unit-name">{modifiedProfile.name}</td>
+                                                                                {["armourFront", "armourSide", "armourRear", "BS"].map(stat => (
+                                                                                    <td key={stat}>{modifiedProfile[stat]}</td>
+                                                                                ))}
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                            </tbody>
+                                                        </table>
+                                                    ) : (
+                                                        <table className="unit-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Name</th>
+                                                                    <th>WS</th>
+                                                                    <th>BS</th>
+                                                                    <th>S</th>
+                                                                    <th>T</th>
+                                                                    <th>W</th>
+                                                                    <th>I</th>
+                                                                    <th>A</th>
+                                                                    <th>Ld</th>
+                                                                    <th>Sv</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {displayedStatlines
+                                                                    // filter out profiles requiring an upgrade that hasn't been taken
+                                                                    .filter(profile => {
+                                                                        // Does any upgrade match this profile name?
+                                                                        const needsUpgrade = (u.upgrades || []).some(
+                                                                            up => up.name.replace(/\[|\]/g, "") === profile.name
+                                                                        );
+                                                                        if (!needsUpgrade) return true; // base profile → always show
+                                                                        return u.chosenUpgrades.some(
+                                                                            cu => cu.name.replace(/\[|\]/g, "") === profile.name && cu.count > 0
+                                                                        );
 
-                                                                })
-                                                                .map((profile, i) => {
-                                                                    let modifiedProfile = { ...profile };
-                                                                    // apply statlineModifiers from chosen upgrades
-                                                                    (u.chosenUpgrades || []).forEach(up => {
-                                                                        if (up.statlineModifiers) {
-                                                                            modifiedProfile = { ...modifiedProfile, ...up.statlineModifiers };
-                                                                        }
-                                                                    });
+                                                                    })
+                                                                    .map((profile, i) => {
+                                                                        let modifiedProfile = { ...profile };
+                                                                        // apply statlineModifiers from chosen upgrades
+                                                                        (u.chosenUpgrades || []).forEach(up => {
+                                                                            if (up.statlineModifiers) {
+                                                                                modifiedProfile = { ...modifiedProfile, ...up.statlineModifiers };
+                                                                            }
+                                                                        });
 
-                                                                    return (
-                                                                        <tr key={i}>
-                                                                            <td className="unit-name">{modifiedProfile.name}</td>
-                                                                            {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map(stat => (
-                                                                                <td key={stat}>{modifiedProfile[stat]}</td>
-                                                                            ))}
-                                                                        </tr>
-                                                                    );
-                                                                })}
-                                                        </tbody>
-                                                    </table>
-                                                )
+                                                                        return (
+                                                                            <tr key={i}>
+                                                                                <td className="unit-name">{modifiedProfile.name}</td>
+                                                                                {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map(stat => (
+                                                                                    <td key={stat}>{modifiedProfile[stat]}</td>
+                                                                                ))}
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                            </tbody>
+                                                        </table>
+                                                    )
                                             )}
 
                                             {/* Rules */}
@@ -1316,6 +1313,23 @@ export default function ArmyBuilder({ saved }) {
                     registry={registry}
                 />
             </div >
+
+
+            <div className="panel-nav">
+                {panelOrder.map((key) => (
+                    <button
+                        key={key}
+                        onClick={() => {
+                            setActivePanel(key);
+                            scrollToPanel(panelRefs[key], key);
+                        }}
+                        className={activePanel === key ? "page-btn active" : "page-btn"}
+                    >
+                        {panelLabels[key]}
+                    </button>
+                ))}
+            </div>
+
         </div>
 
     );

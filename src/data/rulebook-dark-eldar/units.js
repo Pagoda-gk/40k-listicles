@@ -2,66 +2,109 @@ import ReactMarkdown from "react-markdown";
 
 export const units = [
     {
-        name: "Archon",
+        name: "Dark Eldar Lord",
         category: "HQ",
         basePoints: 60,
         minModels: 1,
         maxModels: 1,
-        statline: [
-            {
-                name: "Archon",
-                WS: 6,
-                BS: 6,
-                S: 3,
-                T: 3,
-                W: 3,
-                I: 7,
-                A: 3,
-                Ld: 9,
-                Sv: "5+",
+        variants: {
+            profile: {
+                label: "Hero Type",
+                options: [
+                    {
+                        name: "Archon",
+                        statline: { WS: 6, BS: 6, S: 3, T: 3, W: 3, I: 7, A: 3, Ld: 9, Sv: "5+" },
+                        extraPoints: 0
+                    },
+                    {
+                        name: "Dracon",
+                        statline: { WS: 5, BS: 5, S: 3, T: 3, W: 2, I: 6, A: 2, Ld: 9, Sv: "5+" },
+                        extraPoints: -25
+                    },
+                ]
+            },
 
-            }
-        ],
-        rules: ["[Independent Character]", "[Retinue]"],
+        },
+        rules: ["[Independent Character]", "[Retinue]", "[Haemonculus]"],
         wargear: ["[Splinter Pistol]"],
         upgrades: [
-            { type: "single", name: "[Agoniser]", points: 20 },
-            { type: "single", name: "[Close Combat Weapon]", points: 1 },
-            { type: "single", name: "[Power Weapon]", points: 10 },
-            { type: "single", name: "[Poisoned Blades]", points: 5 },
+            {
+                type: "grouped",
+                name: "Lord Special Weapons",
+                maxPer: 2,
+                options: [
+                    { type: "single", name: "[Close Combat Weapon]", points: 1, wargear: ["[Close Combat Weapon]"] },
+                    { type: "single", name: "[Power Weapon]", points: 10, wargear: ["[Power Weapon]"] },
+                    { type: "single", name: "[Splinter Pistol]", points: 1, wargear: ["[Splinter Pistol]"] },
+                    { type: "single", name: "[Splinter Rifle]", points: 2, wargear: ["[Splinter Rifle]"] },
+                ]
+            },
+            { type: "single", name: "[Raider]", points: 0, wargear: ["[Raider]"] },
+
 
         ],
 
     },
     {
-        name: "Wych Lord",
+        name: "Dark Eldar Lord's Retinue",
         category: "HQ",
-        basePoints: 60,
-        minModels: 1,
-        maxModels: 1,
+        basePoints: 8,
+        minModels: 5,
+        maxModels: 10,
+        ignoreSlot: true,
         statline: [
             {
-                name: "Archite",
-                WS: 6,
-                BS: 6,
+                name: "Dark Eldar",
+                WS: 4,
+                BS: 4,
                 S: 3,
                 T: 3,
-                W: 3,
-                I: 7,
-                A: 3,
-                Ld: 9,
+                W: 1,
+                I: 5,
+                A: 1,
+                Ld: 8,
                 Sv: "5+",
-
+            },
+            {
+                name: "Incubus",
+                WS: 5,
+                BS: 4,
+                S: 3,
+                T: 3,
+                W: 1,
+                I: 5,
+                A: 1,
+                Ld: 8,
+                Sv: "3+",
+            },
+            {
+                name: "Haemonculus",
+                WS: 4,
+                BS: 4,
+                S: 3,
+                T: 4,
+                W: 2,
+                I: 4,
+                A: 2,
+                Ld: 8,
+                Sv: "5+",
             }
         ],
-        rules: ["[Independent Character]", "[Retinue]"],
-        wargear: ["[Splinter Pistol]"],
+        rules: [""],
+        wargear: ["[Splinter Rifle]"],
         upgrades: [
-            { type: "single", name: "[Agoniser]", points: 20 },
-            { type: "single", name: "[Close Combat Weapon]", points: 1 },
-            { type: "single", name: "[Power Weapon]", points: 10 },
-            { type: "single", name: "[Poisoned Blades]", points: 5 },
-
+            { type: "perModelLimited", name: "[Incubi]", points: 17, wargear: ["[Splinter Pistol]", "[Power weapon]"] },
+            {
+                type: "grouped",
+                name: "ret Special Weapons",
+                maxPer: 2,
+                options: [
+                    { name: "Dark Eldar [Splinter Cannon]", points: 10, wargear: ["[Splinter Cannon]"] },
+                    { name: "Dark Eldar [Lascannon]", points: 15, wargear: ["[Lascannon]"] },
+                ]
+            },
+            { type: "limited", name: "Incubi [Shredder]", points: 10, maxPer: 2, wargear: ["[Shredder]"] },
+            { type: "single", name: "[Haemonculus]", points: 35, wargear: ["[Flamer]", "[Poisoned Blades]", "[Krak Grenades]"] },
         ],
 
     },
@@ -112,7 +155,7 @@ export const units = [
                 // Triggered by selecting this upgrade
                 triggerUpgrade: "[Succubus]",
                 effects: {
-                  //  unlockWargear: ["[Agonizer]", "[Wych Blade]"], // extra wargear options
+                    //  unlockWargear: ["[Agonizer]", "[Wych Blade]"], // extra wargear options
                     unlockUpgrades: [
                         { type: "perModel", name: "[Special Wych Weapon]", points: 3 },
                     ],

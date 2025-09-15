@@ -36,4 +36,8 @@ At the end of the battle, any prisoners are worth **1 VP**.`,
 5. Reroll misses in close combat  
 6. +1 Attack`,
   },
+    {
+    name: "Haemonculus",
+    description: `The Dark Eldar Lord may be joined by a Haemonculus.`,
+  },
 ];

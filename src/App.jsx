@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import React from 'react';
 import factions from "./data/factions";
-import ArmyBuilder from "./ArmyBuilder";
+import Listicles from "./ArmyBuilder";
 import './index.css';
 
 
@@ -45,7 +45,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/army-saved/:listIndex" element={<ArmyBuilder saved={true} />} />
+        <Route path="/army-saved/:listIndex" element={<Listicles saved={true} />} />
         <Route
           path="/"
           element={
@@ -105,7 +105,7 @@ export default function App() {
             </div>
           }
         />
-        <Route path="/army/:factionId" element={<ArmyBuilder />} />
+        <Route path="/army/:factionId" element={<Listicles />} />
       </Routes>
     </Router>
   );

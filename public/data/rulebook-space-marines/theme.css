@@ -7,7 +7,7 @@
 
 /* Scoped faction theme for left panel */
 .panel-left {
-    background-color: #261970;
+    background-color: #2f302c;
     /* panel background */
     color: #81ee77;
 
@@ -15,23 +15,24 @@
 }
 
 .panel-left .unit-button {
-    background-color: #dbd5d5;
-    color: #131413;
-    border: 1px solid #000000;
+    background-color: #333333;
+    color: #f5f5f5;
+    border: 1px solid #a8a8a8;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
 }
 
 .panel-left .unit-button:hover {
-    background-color: #c59b40;
+    background-color: #000000;
 }
 
 
 .panel-left h2 {
     font-weight: 1;
     text-align: center;
-    background-color: #4e3612;
+    background-color: #000000;
     color: #ffffff;
-    font-family:'Times New Roman', Times, serif
+
+    font-family: 'Times New Roman', Times, serif
 }
 
 .panel-left h1,
@@ -47,19 +48,19 @@
 }
 
 .fixed-button.save {
-    background-color: #3f3022;
-    border: 1px solid #504031;
-    color: #999696;
-    right: 1rem;
+    background-color: #86a2a3;
+    border: 2px solid #f8f8f8;
+    color: #5a6466;
     cursor: pointer;
-    
+    border-radius: 0.2rem;
+
 }
 
 .fixed-button.home {
-    background-color: #3f3022;
-    border: 1px solid #504031;
-    color: #999696;
-    left: 1rem;
+    background-color: #86a2a3;
+    border: 2px solid #f8f8f8;
+    color: #5a6466;
+    border-radius: 0.2rem;
 }
 
 .floating-total {
@@ -72,16 +73,16 @@
     text-align: center;
     z-index: 1500;
     box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
-    background-color: #3f3022;
-    border: 1px solid #504031;
-    color: #999696;
+    background-color: #86a2a3;
+    border: 2px solid #f8f8f8;
+    color: #5a6466;
 }
 
 .army-builder .panel-label {
 
-    background-color: #3f3022;
-    border: 1px solid #504031;
-    color: #999696;
+    background-color: #86a2a3;
+    border: 2px solid #f8f8f8;
+    color: #5a6466;
 }
 
 .army-builder .panel-label.active {
@@ -90,7 +91,39 @@
     border: 1px solid #000000 !important;
 
 }
+
+.page-btn {
+    min-width: 5.5rem;
+    /* or fit-content if you prefer */
+    height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: center;
+    background-color: #86a2a3;
+    border: 2px solid #f8f8f8;
+    color: #5a6466;
+}
+
+.page-btn:hover {
+    background: #86a2a3;
+}
+
+.page-btn.active {
+    background: #464646;
+    /* highlight active page */
+    border-color: #ffffff;
+    color: #ffffff
+}
+
 :root {
-  /* Colors */
-  --bg-color: #3f3022;
+    /* Colors */
+    --bg-color: #5bc047;
+}
+
+.page-btn:not(.active):focus,
+.page-btn:not(.active):active {
+    background: #b4b23a;
+    /* or whatever your default is */
 }

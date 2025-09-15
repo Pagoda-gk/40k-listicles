@@ -982,7 +982,7 @@ export const units = [
                     { name: "[Lascannon]", points: 25, wargear: ["[Lascannon]"] },
                 ]
             },
-            { type: "single", name: "[Smoke Launchers]", points: 3, wargear: ["[Terminator Armor]", "[Storm Bolter]", "[Power Fist]"], }
+            { type: "single", name: "[Smoke Launchers]", points: 3, wargear: ["[Smoke Launchers]"], }
         ],
     },
 
@@ -990,7 +990,7 @@ export const units = [
         name: "Predator Destructor",
         category: "Heavy Support",
         modelType: "[Vehicle], [Tank]",
-        basePoints: 120,
+        basePoints: 100,
         minModels: 1,
         maxModels: 1,
         isVehicle: true,
@@ -1009,13 +1009,13 @@ export const units = [
             {
                 type: "grouped",
                 name: "Dev Special Weapons",
-                maxPer: 2,
+                maxPer: 1,
                 options: [
-                    { name: "[Heavy Bolter]", points: 10, wargear: ["[Heavy Bolter]"] },
-                    { name: "[Lascannon]", points: 25, wargear: ["[Lascannon]"] },
+                    { name: "2x [Heavy Bolter] Side sponsons", points: 10, wargear: ["2x [Heavy Bolter] Side sponsons"] },
+                    { name: "2x [Lascannon] side sponsons", points: 25, wargear: ["2x [Lascannon] side sponsons"] },
                 ]
             },
-            { type: "single", name: "[Smoke Launchers]", points: 3, wargear: ["[Terminator Armor]", "[Storm Bolter]", "[Power Fist]"], }
+            { type: "single", name: "[Smoke Launchers]", points: 3, wargear: ["[Smoke Launchers]"], }
         ],
     },
 
