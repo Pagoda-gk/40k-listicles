@@ -37,7 +37,8 @@ export const units = [
         wargear: ["[Bolt Pistol]"],
         upgrades: [
             {
-                name: "If the army includes a squad of Terminators, this model may take [Terminator Armor], replacing it's Bolt Pistol with a [Storm Bolter] and [Power Fist]",
+                upgradeText: "If the army includes a squad of Terminators, this model may take",
+                name: "[Terminator Armor], replacing it's Bolt Pistol with a [Storm Bolter] and [Power Fist]",
                 type: "single",
                 statlineModifiers: { Sv: "2+" },
                 wargear: ["[Terminator Armor]", "[Storm Bolter]", "[Power Fist]"],
@@ -551,9 +552,9 @@ export const units = [
         rules: ['[Infiltrators]'],
         wargear: ["[Bolt Pistol]", "[Close Combat Weapon]"],
         upgrades: [
-            { type: "perModelLimited", name: "[Bolter]", points: 0, wargear: ["[Bolter]"] },
-            { type: "perModelLimited", name: "[Sniper Rifle]", points: 5, wargear: ["[Sniper Rifle]"] },
-            { type: "perModelLimited", name: "[Combat Shotgun]", points: 0, wargear: ["[Combat Shotgun]"] },
+            { type: "limited", name: "[Bolter]", points: 0, wargear: ["[Bolter]"] },
+            { type: "limited", name: "[Sniper Rifle]", points: 5, wargear: ["[Sniper Rifle]"] },
+            { type: "limited", name: "[Combat Shotgun]", points: 0, wargear: ["[Combat Shotgun]"] },
             { type: "limited", name: "[Heavy Bolter]", points: 15, maxPer: 1, wargear: ["[Heavy Bolter]"] },
             { type: "perModel", name: "[Frag Grenades]", points: 1, wargear: ["[Frag Grenades]"] },
             { type: "perModel", name: "[Krak Grenades]", points: 2, wargear: ["[Krak Grenades]"] },
@@ -803,7 +804,7 @@ export const units = [
         rules: [''],
         wargear: ["[Heavy Bolter]"],
         upgrades: [
-            { type: "perModelLimited", name: "[Multimelta]", points: 15, wargear: ["[Multimelta]"] },
+            { type: "limited", name: "[Multimelta]", points: 15, wargear: ["[Multimelta]"] },
         ],
     },
 
@@ -856,7 +857,7 @@ export const units = [
         rules: [''],
         wargear: ["[Twin-Linked Bolters]", "[Heavy Bolter]", "[Bolt Pistol]"],
         upgrades: [
-            { type: "perModelLimited", name: "[Multimelta]", points: 15, wargear: ["[Multimelta]"] },
+            { type: "limited", name: "[Multimelta]", points: 15, wargear: ["[Multimelta]"] },
         ],
     },
 
@@ -1083,7 +1084,7 @@ export const units = [
             },
             { type: "single", name: "[Heavy Flamer]", points: 10, wargear: ["[Heavy flamer]"], removes: ["[Storm Bolter]"] },
             { type: "single", name: "[Missile Launcher]", points: 10, statlineModifiers: { S: 6 }, wargear: ["[Missile Launcher]"], removes: ["[Dreadnought Close Combat Weapon]"] },
-            { type: "single", name: "[Smoke Launchers]", points: 3, wargear: ["[Terminator Armor]", "[Storm Bolter]", "[Power Fist]"], }
+            { type: "single", name: "[Smoke Launchers]", points: 3, wargear: ["[Smoke Launchers]"], }
         ],
     },
 

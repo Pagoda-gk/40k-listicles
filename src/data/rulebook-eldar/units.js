@@ -2,121 +2,80 @@ import ReactMarkdown from "react-markdown";
 
 export const units = [
     {
-        name: "Dark Eldar Lord",
+        name: "Avatar",
         category: "HQ",
-        unitLimit: 1,
-        basePoints: 60,
+        basePoints: 80,
         minModels: 1,
         maxModels: 1,
-        variants: {
-            profile: {
-                label: "Hero Type",
-                options: [
-                    {
-                        name: "Archon",
-                        statline: { WS: 6, BS: 6, S: 3, T: 3, W: 3, I: 7, A: 3, Ld: 9, Sv: "5+" },
-                        extraPoints: 0,
-                    },
-                    {
-                        name: "Dracon",
-                        statline: { WS: 5, BS: 5, S: 3, T: 3, W: 2, I: 6, A: 2, Ld: 9, Sv: "5+" },
-                        extraPoints: -25,
-                    },
-                ]
-            },
-
-        },
-        rules: ["[Independent Character]", "[Retinue]", "[Haemonculus]"],
-        wargear: ["[Splinter Pistol]"],
-        upgrades: [
-            {
-                type: "grouped",
-                name: "Lord Special Weapons",
-                maxPer: 2,
-                options: [
-                    { type: "single", name: "[Close Combat Weapon]", points: 1, wargear: ["[Close Combat Weapon]"] },
-                    { type: "single", name: "[Power Weapon]", points: 10, wargear: ["[Power Weapon]"] },
-                    { type: "single", name: "[Splinter Pistol]", points: 1, wargear: ["[Splinter Pistol]"] },
-                    { type: "single", name: "[Splinter Rifle]", points: 2, wargear: ["[Splinter Rifle]"] }
-                ]
-            },
-            { type: "single", name: "[Raider]", points: 0, wargear: ["[Raider]"] },
-
-
-        ],
-
-    },
-    {
-        name: "Dark Eldar Lord's Retinue",
-        category: "HQ",
-        basePoints: 8,
-        minModels: 5,
-        maxModels: 10,
-        ignoreSlot: true,
+        modelType: "[Monstrous Creature]",
+        unitLimit: 1,
         statline: [
             {
-                name: "Dark Eldar",
-                WS: 4,
-                BS: 4,
-                S: 3,
-                T: 3,
-                W: 1,
+                name: "Avatar",
+                WS: 10,
+                BS: 0,
+                S: 6,
+                T: 6,
+                W: 4,
                 I: 5,
-                A: 1,
-                Ld: 8,
-                Sv: "5+",
+                A: 3,
+                Ld: 10,
+                Sv: "5++",
             },
+        ],
+
+        rules: ["[Independent Character]", "[Fearless]"],
+        wargear: ["[The Wailing Doom]"],
+    },
+
+
+    {
+        name: "Phoenix Lord",
+        category: "HQ",
+        basePoints: 55,
+        minModels: 1,
+        maxModels: 1,
+        statline: [
             {
-                name: "Incubus",
-                WS: 5,
-                BS: 4,
-                S: 3,
-                T: 3,
-                W: 1,
-                I: 5,
-                A: 1,
-                Ld: 8,
+                name: "Phoenix Lord",
+                WS: 6,
+                BS: 6,
+                S: 4,
+                T: 4,
+                W: 3,
+                I: 7,
+                A: 3,
+                Ld: 10,
                 Sv: "3+",
             },
-            {
-                name: "Haemonculus",
-                WS: 4,
-                BS: 4,
-                S: 3,
-                T: 4,
-                W: 2,
-                I: 4,
-                A: 2,
-                Ld: 8,
-                Sv: "5+",
-            }
         ],
-        rules: [""],
-        wargear: ["[Splinter Rifle] (Dark Eldar)"],
+        rules: ["[Independent Character]"],
+        wargear: ["[Shuriken Pistol]"],
         upgrades: [
-            { upgradeText: "Any model may be an", type: "limited", name: "[Incubi]", points: 17, wargear: ["[Splinter Pistol] (Incubi)", "[Power weapon] (Incubi)"] },
-            { upgradeText: "Up to 2 Incubi may take a", type: "limited", name: "[Shredder]", points: 10, maxPer: 2, wargear: ["[Shredder]"] },
-
             {
                 type: "grouped",
-                name: "ret Special Weapons",
-                upgradeText: "Up to 2 Dark Eldar may take:",
-                maxPer: 2,
+                name: "Phoenix Lord",
+                upgradeText: "The Phoenix Lord must be one of the following:",
+                maxPer: 1,
                 options: [
-                    { name: "Dark Eldar [Splinter Cannon]", points: 10, wargear: ["[Splinter Cannon]"] },
-                    { name: "Dark Eldar [Lascannon]", points: 15, wargear: ["[Lascannon]"] },
+                    { name: "[Dark Reaper]", points: 20, wargear: ["[Shuriken Cannon]", "[Power Weapon]"] },
+                    { name: "[Howling Banshee]", points: 15, wargear: ["[Banshee Mask]", "[Power Weapon]", "[Silent Death]"] },
+                    { name: "[Striking Scorpion]", points: 18, wargear: ["[Mandiblaster]", "[Chainsword]", "[Power Fist]"], statlineModifiers: { S: 9 } },
+                    { name: "[Swooping Hawk]", points: 30, wargear: ["[Swooping Hawk Wings]", "[Power Weapon] x2"], },
+                    { name: "[Fire Dragon]", points: 17, wargear: ["[Power Weapon]", "[Meltagun]"] },
+                    { name: "[Dire Avenger]", points: 8, wargear: ["[Twin-Linked] [Shuriken Catapult]", "[Power Weapon]"]},
+
                 ]
             },
-            { type: "single", name: "[Haemonculus]", points: 35, wargear: ["[Flamer] (Haemonculus)", "[Poisoned Blades] (Haemonculus)", "[Krak Grenades] (Haemonculus)"] },
         ],
 
     },
     {
-        name: "Haemonculus",
+        name: "Farseer",
         category: "HQ",
-        basePoints: 35,
+        basePoints: 65,
         minModels: 1,
-        maxModels: 3,
+        maxModels: 1,
         statline: [
             {
                 name: "Haemonculus",
@@ -137,7 +96,6 @@ export const units = [
     {
         name: "Mandrakes",
         category: "Elites",
-        unitLimit: 1,
         basePoints: 15,
         minModels: 5,
         maxModels: 10,

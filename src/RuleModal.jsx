@@ -16,7 +16,9 @@ export default function RuleModal({ rule, onClose, onSelectRule, registry }) {
 
                 {/* Description (rules or wargear) */}
                 {rule.description && (
-                    <div className="modal-description">
+                    <div className="modal-description"
+                    style={{ whiteSpace: "pre-line" }}
+                    >
                         {renderWithReferences(rule.description, registry, onSelectRule)}
                     </div>
                 )}

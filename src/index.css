@@ -228,6 +228,7 @@ button:hover,
   margin-top: 0.5rem;
   display: flex;
   gap: 0.5rem;
+  padding-bottom: 1rem;
 }
 
 .unit-actions button {
@@ -814,10 +815,9 @@ h4 {
 /* Give the card itself a single border */
 .upgrade-group-card {
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius, 6px);
   padding: 0.5rem 0.75rem;
   margin-bottom: 0.75rem;
-  background: var(--panel-bg, #fff);
+  background: var(--panel-bg, #868686);
 }
 
 

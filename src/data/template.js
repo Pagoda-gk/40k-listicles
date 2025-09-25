@@ -9,6 +9,7 @@
         basePoints: 1,
         minModels: 1,
         maxModels: 1,
+        unitLimit: 1,
         ignoreSlot: true,---------------<--DELETE THIS AS NECESSARY----------
 
 -------------------VEHICLE STATS-------------------
@@ -113,8 +114,7 @@
 
             ------------------------BASIC UPGRADES-------------------------------------------
 
-            { upgradeText: "XXX", type: "perModelLimited", name: "[xxx]", points: 3, wargear: ["[xxx]"] },
-            { upgradeText: "XXX", type: "limited", name: "[XXX]", points: 15, maxPer: 2, wargear: ["[XXX]]"] },
+            { upgradeText: "XXX", type: "limited", name: "[XXX]", points: 15, maxPer: 2(delete for any model in the unit), wargear: ["[XXX]]"] },
             { upgradeText: "XXX", type: "perModel", name: "[XXX]", points: 4, wargear: ["[]"] },
             { upgradeText: "XXX", type: "single", name: "[XXX]", points: 5, wargear: ["[XXX]"], removes: ["[Bolt Pistol]"]},
 
@@ -125,7 +125,7 @@
             {
                 type: "grouped",
                 name: "Term Special Weapons",
-                maxPer: 2,
+                maxPer: 2 (delete for unit max),
                 options: [
                     { name: "[Assault Cannon]", points: 20, wargear: ["[Assault Cannon]"] },
                     { name: "[Heavy Flamer]", points: 10, wargear: ["[Heavy Flamer]"] },
@@ -136,7 +136,7 @@
 
 
 
-            -----------------------STATLINE/WARGEAR EFFECTING UPGRADES--------------------------------------------
+            -----------------------STATLINE/WARGEAR AFFECTING UPGRADES--------------------------------------------
             upgrades: [
             {
                 name: "Terminator Armor",

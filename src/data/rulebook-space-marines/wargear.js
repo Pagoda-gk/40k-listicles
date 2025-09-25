@@ -19,12 +19,7 @@ export const wargear = [
     This weapon always ignores [Armour Saves]
     This weapon always strikes last`,
   },
-        {
-    name: "Power Fist",
-    description: `The User may double the Strength characteristic up to a maximum of 10 when rolling to [Wound]
-    This weapon always ignores [Armour Saves]
-    This weapon always strikes last`,
-  },
+
 
 
 

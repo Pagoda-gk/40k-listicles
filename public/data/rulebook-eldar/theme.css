@@ -1,0 +1,132 @@
+@font-face {
+    font-family: 'CinzelDecorative';
+    src: url('/fonts/CinzelDecorative-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Scoped faction theme for left panel */
+.panel-left {
+    background-color: #4181a7;
+    /* panel background */
+    color: #81ee77;
+    /* default text */
+    font-family: 'UnifrakturCook', cursive;
+    overflow-x: hidden;
+}
+
+.panel-left .unit-button {
+    background-color: #70defa;
+    color: #131413;
+    border: 1px solid #000000;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+}
+
+.panel-left .unit-button:hover {
+    background-color: #72b3a4;
+}
+
+.panel-left h3 {
+    color: #6de648;
+}
+
+.panel-left .stepper button {
+    background-color: #c4c4c4;
+    color: #c93d3d;
+}
+
+.panel-left h2 {
+    font-weight: 1;
+    text-align: center;
+    background-color: #729da8;
+    color: #000000;
+    font-family: monospace;
+    font-size: xx-large;
+    border-color: #f1f0e3
+}
+
+.panel-left h1,
+.panel-left h3,
+.panel-left h4 {
+    font-family: 'CinzelDecorative', serif;
+    text-align: center;
+    background-color: #403168;
+    color: #8271b1;
+    border: 1px solid #f1f0e3;
+}
+
+.fixed-button.save {
+    background-color: #0e0091;
+    color: #b1cddd;
+    border: 1px solid #f1f0e3;
+    right: 1rem;
+    cursor: pointer;
+}
+
+.fixed-button.home {
+    background-color: #0e0091;
+    color: #b1cddd;
+    border: 1px solid #f1f0e3;
+    left: 1rem;
+}
+
+.floating-total {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    text-align: center;
+    z-index: 1500;
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+    background-color: #0e0091;
+    color: #b1cddd;
+    border: 1px solid #f1f0e3;
+}
+
+.army-builder .panel-label {
+    background-color: #403168;
+    color: #8271b1;
+    border: 1px solid #f1f0e3;
+}
+
+.army-builder .panel-label.active {
+    background-color: #403168;
+    color: #8271b1;
+    border: 1px solid #f1f0e3;
+
+}
+
+.page-btn {
+    min-width: 5.5rem;
+    /* or fit-content if you prefer */
+    height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: center;
+    background-color: #403168;
+    color: #8271b1;
+    border: 1px solid #f1f0e3;
+}
+
+.page-btn:hover {
+    background-color: #403168;
+    color: #8271b1;
+    border: 1px solid #f1f0e3;}
+
+.page-btn.active {
+    background: #47c2f3;
+    /* highlight active page */
+    border-color: #ffffff;
+    color: #000000
+}
+
+
+:root {
+    /* Colors */
+    --bg-color: #000000;
+}

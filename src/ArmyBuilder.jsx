@@ -103,20 +103,20 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                     );
                 }
 
-
-                // --- PER MODEL LIMITED (dynamic max) ---
-                if (up.type === "perModelLimited") {
+                // --- LIMITED (covers fixed + per-model) ---
+                if (up.type === "limited") {
                     const current = unit.chosenUpgrades.find(sel => sel.name === up.name);
                     const value = current ? current.count : 0;
 
-                    // use the unit's current size for the maximum allowed
-                    // adjust property name to whatever your unit object uses
-                    const maxAllowed = unit.count;
+                    // one line decides the cap:
+                    const maxAllowed = up.maxPer ?? unit.count;
 
-                    // Use custom text if provided, otherwise fallback
+                    // build label text
                     const prefix = up.upgradeText
                         ? renderWithReferences(up.upgradeText, registry, openRuleModal)
-                        : "Any model in the unit may take";
+                        : (up.maxPer
+                            ? `May take up to ${maxAllowed} of:`
+                            : "Any model in the unit may take");
 
                     return (
                         <div key={up.name} className="upgrade-row">
@@ -131,7 +131,7 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                                     value={value}
                                     min={0}
                                     max={maxAllowed}
-                                    onChange={(newVal) =>
+                                    onChange={newVal =>
                                         onToggle(unit.id, { ...up, count: newVal })
                                     }
                                 />
@@ -194,52 +194,24 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                     );
                 }
 
-                // --- LIMITED ---
-                if (up.type === "limited") {
 
-                    const count = up.maxPer ?? 1;
-
-                    const prefix = up.upgradeText
-                    count === 1
-                        ? renderWithReferences(up.upgradeText, registry, openRuleModal)
-                        : `May take up to ${count} of:`;
-
-                    return (
-                        <div key={up.name} className="upgrade-item">
-                            <span className="upgrade-label">
-                                {prefix}{" "}
-                                {label} (+{up.points} pts each)
-                            </span>
-                            <Stepper
-                                value={value}
-                                min={0}
-                                max={up.maxPer}
-                                onChange={(newVal) => onToggle(unit.id, { ...up, count: newVal })}
-                                className="upgrade-stepper"
-                            />
-                            {selected && up.children && (
-                                <UpgradeOptions
-                                    unit={unit}
-                                    upgrades={up.children}
-                                    onToggle={onToggle}
-                                    registry={registry}
-                                    openRuleModal={openRuleModal}
-                                />
-                            )}
-                        </div>
-                    );
-                }
-
-                // --- GROUPED ---
+                // --- GROUPED (covers fixed + per-model) ---
                 if (up.type === "grouped") {
-                    const totalSelected = totalSelectedInGroup(up);
-                    const count = up.maxPer ?? 1;
+                    // how many models in total already have any option from this group
+                    const totalSelected = up.options.reduce((sum, opt) => {
+                        const sel = unit.chosenUpgrades.find(u => u.name === opt.name);
+                        return sum + (sel ? sel.count : 0);
+                    }, 0);
 
+                    // dynamic group cap: explicit maxPer first, else unit size
+                    const maxTotal = up.maxPer ?? unit.count;
 
                     const heading = up.upgradeText ??
-                        (count === 1
-                            ? "May take one of the following:"
-                            : `May take up to ${count} of:`);
+                        (up.maxPer
+                            ? (maxTotal === 1
+                                ? "May take one of the following:"
+                                : `May take up to ${maxTotal} of:`)
+                            : `Each model may take one of the following:`);
 
                     return (
                         <div key={up.name} className="upgrade-group-card">
@@ -248,135 +220,71 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                             </div>
 
                             {up.options.map(opt => {
-                                const optCurrent = unit.chosenUpgrades.find(sel => sel.name === opt.name);
-                                const optValue = optCurrent ? optCurrent.count : 0;
+                                const current = unit.chosenUpgrades.find(sel => sel.name === opt.name);
+                                const value = current ? current.count : 0;
 
+                                // For each option, max = remaining slots in the group + current value
+                                const maxAllowed = maxTotal - (totalSelected - value);
 
-                                if (up.maxPer === 1) {
-                                    const selected = Boolean(optValue);
+                                // If maxTotal is 1, treat like a radio/checkbox set
+                                if (maxTotal === 1) {
+                                    const selected = Boolean(value);
                                     return (
                                         <label key={opt.name} className="upgrade-option-row">
-
                                             <input
                                                 type="checkbox"
                                                 checked={selected}
                                                 onChange={() => {
-                                                    // Deselect all other options in this group
+                                                    // deselect others
                                                     up.options.forEach(o => {
                                                         if (o.name !== opt.name) {
                                                             onToggle(unit.id, { ...o, count: 0 });
                                                         }
                                                     });
-                                                    // Toggle this one
+                                                    // toggle this one
                                                     onToggle(unit.id, { ...opt, count: selected ? 0 : 1 });
                                                 }}
                                                 className="upgrade-input-checkbox"
                                             />
-
-                                            <span className="upgrade-label"> {opt.name} (+{opt.points} pts) </span>
+                                            <span className="upgrade-label">
+                                                {renderWithReferences(opt.name, registry, openRuleModal)}
+                                                {" "} (+{opt.points} pts)
+                                            </span>
                                         </label>
                                     );
                                 }
 
-                                // --- maxPer > 1 → stepper ---
-                                const maxAllowed = up.maxPer - (totalSelected - optValue);
+                                // otherwise use a stepper
                                 return (
                                     <div key={opt.name} className="upgrade-row">
-                                        <span className="upgrade-label">{opt.name} (+{opt.points} pts)</span>
+                                        <span className="upgrade-label">
+                                            {renderWithReferences(opt.name, registry, openRuleModal)}
+                                            {" "} (+{opt.points} pts each)
+                                        </span>
                                         <div className="upgrade-control">
                                             <Stepper
-                                                value={optValue}
+                                                value={value}
                                                 min={0}
                                                 max={maxAllowed}
                                                 onChange={v => onToggle(unit.id, { ...opt, count: v })}
                                             />
                                         </div>
+
+                                        {value > 0 && opt.children && (
+                                            <UpgradeOptions
+                                                unit={unit}
+                                                upgrades={opt.children}
+                                                onToggle={onToggle}
+                                                registry={registry}
+                                                openRuleModal={openRuleModal}
+                                            />
+                                        )}
                                     </div>
                                 );
-                            })}
-
-
-                            {/* optional: nested children per option */}
-                            {up.options.map(opt => {
-                                const sel = unit.chosenUpgrades.find(s => s.name === opt.name);
-                                return sel?.count > 0 && opt.children ? (
-                                    <UpgradeOptions
-                                        key={opt.name + "-children"}
-                                        unit={unit}
-                                        upgrades={opt.children}
-                                        onToggle={onToggle}
-                                        registry={registry}
-                                        openRuleModal={openRuleModal}
-                                    />
-                                ) : null;
                             })}
                         </div>
                     );
                 }
-
-// --- PER MODEL GROUPED ---
-// Any model may take one of several options,
-// but the total chosen across all options cannot exceed the unit size.
-if (up.type === "perModelGrouped") {
-    // how many models in total already have *any* option from this group
-    const totalSelected = up.options.reduce((sum, opt) => {
-        const sel = unit.chosenUpgrades.find(u => u.name === opt.name);
-        return sum + (sel ? sel.count : 0);
-    }, 0);
-
-    const maxTotal = unit.count; // can't exceed number of models
-
-    const heading = up.upgradeText ??
-        `Each model may take one of the following (up to ${unit.count} models total):`;
-
-    return (
-        <div key={up.name} className="upgrade-group-card">
-            <div className="upgrade-group-heading">
-                {renderWithReferences(heading, registry, openRuleModal)}
-            </div>
-
-            {up.options.map(opt => {
-                const current = unit.chosenUpgrades.find(sel => sel.name === opt.name);
-                const value = current ? current.count : 0;
-
-                // Max for this option = remaining models that haven't picked *something*,
-                // plus however many are already using this option.
-                const maxAllowed = unit.count - (totalSelected - value);
-
-                return (
-                    <div key={opt.name} className="upgrade-row">
-                        <span className="upgrade-label">
-                            {renderWithReferences(opt.name, registry, openRuleModal)}
-                            {" "} (+{opt.points} pts each)
-                        </span>
-
-                        <div className="upgrade-control">
-                            <Stepper
-                                value={value}
-                                min={0}
-                                max={maxAllowed}
-                                onChange={newVal =>
-                                    onToggle(unit.id, { ...opt, count: newVal })
-                                }
-                            />
-                        </div>
-
-                        {/* children upgrades if needed */}
-                        {value > 0 && opt.children && (
-                            <UpgradeOptions
-                                unit={unit}
-                                upgrades={opt.children}
-                                onToggle={onToggle}
-                                registry={registry}
-                                openRuleModal={openRuleModal}
-                            />
-                        )}
-                    </div>
-                );
-            })}
-        </div>
-    );
-}
 
 
                 return null; // fallback
@@ -474,10 +382,18 @@ export default function Listicles({ saved }) {
 
     const categoryCounts = categories.reduce((acc, cat) => {
         acc[cat] = army.filter(
-            u => u.category === cat && !u.ignoreSlot   // ✅ skip if ignoreSlot is true
+            u => u.category === cat && !u.ignoreSlot
         ).length;
         return acc;
     }, {});
+
+    const isUnitDisabled = (unit, categoryCounts, limits, army) => {
+        const unitCount = army.filter(a => a.name === unit.name).length;
+        const categoryFull = !unit.ignoreSlot && categoryCounts[unit.category] >= limits[unit.category];
+        const unitFull = unit.unitLimit && unitCount >= unit.unitLimit;
+        return categoryFull || unitFull;
+    };
+
 
     const openRuleModal = (rule) => setModalRule(rule);
     const closeRuleModal = () => setModalRule(null);
@@ -730,13 +646,9 @@ export default function Listicles({ saved }) {
                                 {units
                                     .filter((u) => u.category === cat)
                                     .map((u) => {
-                                        // ✅ If this unit is marked ignoreSlot, never treat the category as full for it
-                                        const full =
-                                            !u.ignoreSlot &&                // <--- add this
-                                            categoryCounts[cat] >= limits[cat];
-
-                                        const unitCount = army.filter(a => a.name === u.name).length;
                                         const minCost = getMinimumUnitCost(u);
+                                        const unitCount = army.filter(a => a.name === u.name).length;
+                                        const disabled = isUnitDisabled(u, categoryCounts, limits, army);
 
                                         return (
                                             <button
@@ -747,9 +659,9 @@ export default function Listicles({ saved }) {
                                                     display: "flex",
                                                     justifyContent: "space-between",
                                                     alignItems: "center",
-                                                    opacity: full ? 0.4 : 1,
-                                                    pointerEvents: full ? "none" : "auto",
-                                                    cursor: full ? "not-allowed" : "pointer",
+                                                    opacity: disabled ? 0.4 : 1,
+                                                    pointerEvents: disabled ? "none" : "auto",
+                                                    cursor: disabled ? "not-allowed" : "pointer",
                                                     padding: "0.25rem 0.5rem"
                                                 }}
                                             >
@@ -891,19 +803,26 @@ export default function Listicles({ saved }) {
                                             {/*for unit types*/}
                                             {u.modelType && (
                                                 <div className="unit-type">
-                                                    {u.modelType}
+                                                   {renderWithReferences(u.modelType, registry,
+                                                   openRuleModal)}
                                                 </div>
                                             )}
-
-
+                                            
                                             {/* Model Count */}
                                             <h5 className="models-heading">Models</h5>
-                                            <Stepper
-                                                value={u.count}
-                                                min={u.minModels}
-                                                max={u.maxModels}
-                                                onChange={(val) => updateCount(u.id, val)}
-                                            />
+
+                                            {u.minModels === 1 && u.maxModels === 1 ? (
+                                                // fixed at exactly 1 model
+                                                <span className="models-fixed">1 model</span>
+                                            ) : (
+                                                <Stepper
+                                                    value={u.count}
+                                                    min={u.minModels}
+                                                    max={u.maxModels}
+                                                    onChange={(val) => updateCount(u.id, val)}
+                                                />
+                                            )}
+
 
 
                                             {/* Statline */}
@@ -1172,6 +1091,14 @@ export default function Listicles({ saved }) {
 
                                         <div key={u.id} className="unit-card">
                                             <h4>{u.count}× {u.name}</h4>
+
+                                            {/*for unit types*/}
+                                            {u.modelType && (
+                                                <div className="unit-type">
+                                                   {renderWithReferences(u.modelType, registry,
+                                                   openRuleModal)}
+                                                </div>
+                                            )}
 
 
                                             {/* Statline */}
