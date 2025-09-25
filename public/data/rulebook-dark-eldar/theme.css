@@ -1,0 +1,109 @@
+@font-face {
+    font-family: 'UnifrakturCook';
+    src: url('/fonts/UnifrakturCook-Bold.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Scoped faction theme for left panel */
+.panel-left {
+    background-color: #463463;
+    /* panel background */
+    color: #81ee77;
+    /* default text */
+    font-family: 'UnifrakturCook', cursive;
+    overflow-x: hidden;
+}
+
+.panel-left .unit-button {
+    background-color: #aaaaaa;
+    color: #131413;
+    border: 1px solid #000000;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+}
+
+.panel-left .unit-button:hover {
+    background-color: #72b3a4;
+}
+
+.panel-left h3 {
+    color: #6de648;
+}
+
+.panel-left .stepper button {
+    background-color: #c4c4c4;
+    color: #c93d3d;
+}
+
+.panel-left h2 {
+    font-weight: 1;
+    text-align: center;
+    background-color: #131413;
+    color: #ffffff;
+    font-family: monospace;
+    transform: scaleX(2.1);
+}
+
+.panel-left h1,
+.panel-left h3,
+.panel-left h4 {
+
+    font-weight: 300;
+    text-align: center;
+    background-color: #131413;
+    color: #b1cddd;
+}
+
+.fixed-button.save {
+    background-color: #131413;
+    color: #ffffff;
+    right: 1rem;
+    cursor: pointer;
+    border: 1px solid #586d94;
+}
+
+.fixed-button.home {
+    background-color: #131413;
+    color: #ffffff;
+    left: 1rem;
+    border: 1px solid #586d94;
+}
+
+.floating-total {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    text-align: center;
+    z-index: 1500;
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+    background-color: #131413;
+    color: #ffffff;
+    border: 1px solid #586d94;
+}
+
+.army-builder .panel-label {
+
+    background-color: #131413 !important;
+    color: #ffffff !important;
+    border: 1px solid #586d94 !important;
+}
+
+.army-builder .panel-label.active {
+    background-color: #131413 !important;
+    color: #ffffff !important;
+    border: 1px solid #66d3bb !important;
+    text-shadow:
+        0 0 1px #00ff6a,
+        0 0 1px #00ff6a,
+        0 0 1px #00ff6a;
+            box-shadow:
+        0 0 1px #00ff6a,
+        0 0 1px #00ff6a;
+}
+:root {
+  /* Colors */
+  --bg-color: #000000;
+}

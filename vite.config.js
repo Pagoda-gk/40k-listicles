@@ -9,8 +9,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',   // keeps cache fresh
       manifest: {
-        name: "Warhammer 40k Army Builder",
-        short_name: "ArmyBuilder",
+        name: "Listicles Army List Builder",
+        short_name: "Listicles",
         start_url: ".",
         display: "standalone",
         background_color: "#000000",

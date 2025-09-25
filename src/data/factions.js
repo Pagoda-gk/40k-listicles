@@ -2,6 +2,7 @@
 import * as darkEldar from "./dark-eldar";
 import * as rulebookSpaceMarines from "./rulebook-space-marines";
 import * as rulebookDarkEldar from "./rulebook-dark-eldar";
+import * as rulebookTyranids from "./rulebook-tyranids";
 
 const factions = {
   "dark-eldar": {
@@ -18,6 +19,11 @@ const factions = {
     name: "Rulebook Dark Eldar",
     system: "Warhammer 40k, 3rd Edition",
     ...rulebookDarkEldar,
+   },
+           "rulebook-tyranids": {
+    name: "Rulebook Tyranids",
+    system: "Warhammer 40k, 3rd Edition",
+    ...rulebookTyranids,
    },
 };
 
