@@ -66,11 +66,16 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                     const value = current ? current.count : 0;
                     const selected = Boolean(value);
 
+                    const prefix = up.upgradeText
+                        ? renderWithReferences(up.upgradeText, registry, openRuleModal)
+                        : "The entire unit may take";
+
+
                     return (
                         <div key={up.name} className="upgrade-row">
                             <span className="upgrade-label">
-                                {/* updated text for perModel */}
-                                The entire unit may take {label} (+{getUpgradeCost(up, unit.selectedVariants?.profile)} pts per model)
+                                {prefix}{" "}
+                                {label} (+{getUpgradeCost(up, unit.selectedVariants?.profile)} pts per model)
                             </span>
 
                             <div className="upgrade-control">
@@ -108,10 +113,16 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                     // adjust property name to whatever your unit object uses
                     const maxAllowed = unit.count;
 
+                    // Use custom text if provided, otherwise fallback
+                    const prefix = up.upgradeText
+                        ? renderWithReferences(up.upgradeText, registry, openRuleModal)
+                        : "Any model in the unit may take";
+
                     return (
                         <div key={up.name} className="upgrade-row">
                             <span className="upgrade-label">
-                                Any model in the unit may take a {renderWithReferences(up.name, registry, openRuleModal)}
+                                {prefix}{" "}
+                                {renderWithReferences(up.name, registry, openRuleModal)}
                                 {" "} (+{up.points} pts each)
                             </span>
 
@@ -146,9 +157,15 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                     const value = current ? current.count : 0;
                     const selected = Boolean(value);
 
+                    const prefix = up.upgradeText
+                        ? renderWithReferences(up.upgradeText, registry, openRuleModal)
+                        : "May take";
+
+
                     return (
                         <div key={up.name} className="upgrade-row">
                             <span className="upgrade-label">
+                                {prefix}{" "}
                                 {label} (+{getUpgradeCost(up, unit.selectedVariants?.profile)} pts)
                             </span>
 
@@ -179,9 +196,18 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
 
                 // --- LIMITED ---
                 if (up.type === "limited") {
+
+                    const count = up.maxPer ?? 1;
+
+                    const prefix = up.upgradeText
+                    count === 1
+                        ? renderWithReferences(up.upgradeText, registry, openRuleModal)
+                        : `May take up to ${count} of:`;
+
                     return (
                         <div key={up.name} className="upgrade-item">
                             <span className="upgrade-label">
+                                {prefix}{" "}
                                 {label} (+{up.points} pts each)
                             </span>
                             <Stepper
@@ -208,14 +234,17 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                 if (up.type === "grouped") {
                     const totalSelected = totalSelectedInGroup(up);
                     const count = up.maxPer ?? 1;
-                    const heading =
-                        count === 1
+
+
+                    const heading = up.upgradeText ??
+                        (count === 1
                             ? "May take one of the following:"
-                            : `May take up to ${count} of:`;
+                            : `May take up to ${count} of:`);
 
                     return (
                         <div key={up.name} className="upgrade-group-card">
-                            <div className="upgrade-group-heading">{heading}
+                            <div className="upgrade-group-heading">
+                                {renderWithReferences(heading, registry, openRuleModal)}
                             </div>
 
                             {up.options.map(opt => {
@@ -285,6 +314,71 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                     );
                 }
 
+// --- PER MODEL GROUPED ---
+// Any model may take one of several options,
+// but the total chosen across all options cannot exceed the unit size.
+if (up.type === "perModelGrouped") {
+    // how many models in total already have *any* option from this group
+    const totalSelected = up.options.reduce((sum, opt) => {
+        const sel = unit.chosenUpgrades.find(u => u.name === opt.name);
+        return sum + (sel ? sel.count : 0);
+    }, 0);
+
+    const maxTotal = unit.count; // can't exceed number of models
+
+    const heading = up.upgradeText ??
+        `Each model may take one of the following (up to ${unit.count} models total):`;
+
+    return (
+        <div key={up.name} className="upgrade-group-card">
+            <div className="upgrade-group-heading">
+                {renderWithReferences(heading, registry, openRuleModal)}
+            </div>
+
+            {up.options.map(opt => {
+                const current = unit.chosenUpgrades.find(sel => sel.name === opt.name);
+                const value = current ? current.count : 0;
+
+                // Max for this option = remaining models that haven't picked *something*,
+                // plus however many are already using this option.
+                const maxAllowed = unit.count - (totalSelected - value);
+
+                return (
+                    <div key={opt.name} className="upgrade-row">
+                        <span className="upgrade-label">
+                            {renderWithReferences(opt.name, registry, openRuleModal)}
+                            {" "} (+{opt.points} pts each)
+                        </span>
+
+                        <div className="upgrade-control">
+                            <Stepper
+                                value={value}
+                                min={0}
+                                max={maxAllowed}
+                                onChange={newVal =>
+                                    onToggle(unit.id, { ...opt, count: newVal })
+                                }
+                            />
+                        </div>
+
+                        {/* children upgrades if needed */}
+                        {value > 0 && opt.children && (
+                            <UpgradeOptions
+                                unit={unit}
+                                upgrades={opt.children}
+                                onToggle={onToggle}
+                                registry={registry}
+                                openRuleModal={openRuleModal}
+                            />
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+
                 return null; // fallback
             })}
         </div>
@@ -311,6 +405,7 @@ export default function Listicles({ saved }) {
     const APP_NAME = "Listicles";
 
     const { factionId, listIndex } = useParams();
+    const storageKey = `army-${factionId}`;
 
     let faction;
     let initialArmy = [];
@@ -354,13 +449,14 @@ export default function Listicles({ saved }) {
 
     const { units, rules, wargear } = faction;
     const [army, setArmy] = useState(() => {
-        const saved = localStorage.getItem("army");
+        const saved = localStorage.getItem(storageKey);
         return saved ? JSON.parse(saved) : [];
     });
 
     useEffect(() => {
-        localStorage.setItem("army", JSON.stringify(army));
-    }, [army]);
+        localStorage.setItem(storageKey, JSON.stringify(army));
+
+    }, [army, storageKey]);
     const [modalRule, setModalRule] = useState(null);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [saveName, setSaveName] = useState("");
@@ -801,7 +897,7 @@ export default function Listicles({ saved }) {
 
 
                                             {/* Model Count */}
-                                            <h5 className="models-heading">models</h5>
+                                            <h5 className="models-heading">Models</h5>
                                             <Stepper
                                                 value={u.count}
                                                 min={u.minModels}

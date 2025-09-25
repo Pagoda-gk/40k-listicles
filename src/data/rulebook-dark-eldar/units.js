@@ -14,12 +14,12 @@ export const units = [
                     {
                         name: "Archon",
                         statline: { WS: 6, BS: 6, S: 3, T: 3, W: 3, I: 7, A: 3, Ld: 9, Sv: "5+" },
-                        extraPoints: 0
+                        extraPoints: 0,
                     },
                     {
                         name: "Dracon",
                         statline: { WS: 5, BS: 5, S: 3, T: 3, W: 2, I: 6, A: 2, Ld: 9, Sv: "5+" },
-                        extraPoints: -25
+                        extraPoints: -25,
                     },
                 ]
             },
@@ -36,7 +36,7 @@ export const units = [
                     { type: "single", name: "[Close Combat Weapon]", points: 1, wargear: ["[Close Combat Weapon]"] },
                     { type: "single", name: "[Power Weapon]", points: 10, wargear: ["[Power Weapon]"] },
                     { type: "single", name: "[Splinter Pistol]", points: 1, wargear: ["[Splinter Pistol]"] },
-                    { type: "single", name: "[Splinter Rifle]", points: 2, wargear: ["[Splinter Rifle]"] },
+                    { type: "single", name: "[Splinter Rifle]", points: 2, wargear: ["[Splinter Rifle]"] }
                 ]
             },
             { type: "single", name: "[Raider]", points: 0, wargear: ["[Raider]"] },
@@ -91,20 +91,22 @@ export const units = [
             }
         ],
         rules: [""],
-        wargear: ["[Splinter Rifle]"],
+        wargear: ["[Splinter Rifle] (Dark Eldar)"],
         upgrades: [
-            { type: "perModelLimited", name: "[Incubi]", points: 17, wargear: ["[Splinter Pistol]", "[Power weapon]"] },
+            { upgradeText: "Any model may be an", type: "perModelLimited", name: "[Incubi]", points: 17, wargear: ["[Splinter Pistol] (Incubi)", "[Power weapon] (Incubi)"] },
+            { upgradeText: "Up to 2 Incubi may take a", type: "limited", name: "[Shredder]", points: 10, maxPer: 2, wargear: ["[Shredder]"] },
+
             {
                 type: "grouped",
                 name: "ret Special Weapons",
+                upgradeText: "Up to 2 Dark Eldar may take:",
                 maxPer: 2,
                 options: [
                     { name: "Dark Eldar [Splinter Cannon]", points: 10, wargear: ["[Splinter Cannon]"] },
                     { name: "Dark Eldar [Lascannon]", points: 15, wargear: ["[Lascannon]"] },
                 ]
             },
-            { type: "limited", name: "Incubi [Shredder]", points: 10, maxPer: 2, wargear: ["[Shredder]"] },
-            { type: "single", name: "[Haemonculus]", points: 35, wargear: ["[Flamer]", "[Poisoned Blades]", "[Krak Grenades]"] },
+            { type: "single", name: "[Haemonculus]", points: 35, wargear: ["[Flamer] (Haemonculus)", "[Poisoned Blades] (Haemonculus)", "[Krak Grenades] (Haemonculus)"] },
         ],
 
     },
@@ -377,7 +379,7 @@ export const units = [
         ],
 
     },
-        {
+    {
         name: "Reaver Jetbike Squad",
         category: "Fast Attack",
         basePoints: 25,

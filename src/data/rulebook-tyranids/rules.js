@@ -12,4 +12,8 @@ export const rules = [
     name: "The Horror",
     description: `Any enemy that wishes to [Assault] this unit must take a standard [morale check]. If the check is failed, the unit will [Fall Back] as normal.`,
   },
+    {
+    name: "Chameleonic Scales",
+    description: `This unit is always assumed to be in [Cover]. This provides them with a 5+ [Invulnerable Save] and allows the unit to strike first when assauled, unless the charging unit has [Frag Grenades].`,
+  },
 ];

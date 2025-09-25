@@ -113,10 +113,10 @@
 
             ------------------------BASIC UPGRADES-------------------------------------------
 
-            { type: "perModelLimited", name: "[xxx]", points: 3, wargear: ["[xxx]"] },
-            { type: "limited", name: "[XXX]", points: 15, maxPer: 2, wargear: ["[XXX]]"] },
-            { type: "perModel", name: "[XXX]", points: 4, wargear: ["[]"] },
-            { type: "single", name: "[XXX]", points: 5, wargear: ["[XXX]"], removes: ["[Bolt Pistol]"]},
+            { upgradeText: "XXX", type: "perModelLimited", name: "[xxx]", points: 3, wargear: ["[xxx]"] },
+            { upgradeText: "XXX", type: "limited", name: "[XXX]", points: 15, maxPer: 2, wargear: ["[XXX]]"] },
+            { upgradeText: "XXX", type: "perModel", name: "[XXX]", points: 4, wargear: ["[]"] },
+            { upgradeText: "XXX", type: "single", name: "[XXX]", points: 5, wargear: ["[XXX]"], removes: ["[Bolt Pistol]"]},
 
             --------------------------FORCED------------------------------------
             { type: "single", name: "[XXX]", points: 5, wargear: ["[XXX]"], forced: true },
