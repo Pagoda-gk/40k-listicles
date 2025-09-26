@@ -63,7 +63,7 @@ export const units = [
                     { name: "[Striking Scorpion]", points: 18, wargear: ["[Mandiblaster]", "[Chainsword]", "[Power Fist]"], statlineModifiers: { S: 9 } },
                     { name: "[Swooping Hawk]", points: 30, wargear: ["[Swooping Hawk Wings]", "[Power Weapon] x2"], },
                     { name: "[Fire Dragon]", points: 17, wargear: ["[Power Weapon]", "[Meltagun]"] },
-                    { name: "[Dire Avenger]", points: 8, wargear: ["[Twin-Linked] [Shuriken Catapult]", "[Power Weapon]"]},
+                    { name: "[Dire Avenger]", points: 8, wargear: ["[Twin-Linked] [Shuriken Catapult]", "[Power Weapon]"] },
 
                 ]
             },
@@ -78,30 +78,66 @@ export const units = [
         maxModels: 1,
         statline: [
             {
-                name: "Haemonculus",
+                name: "Farseer",
+                WS: 5,
+                BS: 5,
+                S: 3,
+                T: 4,
+                W: 3,
+                I: 5,
+                A: 1,
+                Ld: 10,
+                Sv: "4++",
+            },
+            {
+                name: "Warlock",
+                WS: 4,
+                BS: 4,
+                S: 3,
+                T: 3,
+                W: 1,
+                I: 4,
+                A: 1,
+                Ld: 8,
+                Sv: "4++",
+            },
+            {
+                name: "Jetbike Warlock",
                 WS: 4,
                 BS: 4,
                 S: 3,
                 T: 4,
-                W: 2,
+                W: 1,
                 I: 4,
-                A: 2,
+                A: 1,
                 Ld: 8,
-                Sv: "5+",
+                Sv: "3+/4++",
             },
+
         ],
-        rules: ["[Squad]"],
-        wargear: ["[Flamer]", "[Poisoned Blades]", "[Krak Grenades]", "[Krak Grenades]"],
+        rules: ["[Independent Character] (unless accompanied by Warlocks)", "[Psychic Power - Runesight]"],
+        wargear: ["[Shuriken Pistol]", "[Witchblade]"],
+        upgrades: [
+            {
+                upgradeText: "The Farseer may be accompanied by up to 5", type: "limited", name: "[Warlock]", points: 26, maxPer: 5,
+                children: [
+                    { type: "limited", maxPer: 5, upgradeText: "Warlocks assigned to Guardian Jetbike squadrons must be a", name: "[Jetbike Warlock]", points: 22, wargear: ["[Jetbike]", "[Twin-Linked] [Shuriken Catapult] (Jetbke)"] },
+                ],
+            },
+            { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]" },
+
+
+        ]
     },
     {
-        name: "Mandrakes",
+        name: "Warp Spider",
         category: "Elites",
-        basePoints: 15,
+        basePoints: 18,
         minModels: 5,
         maxModels: 10,
         statline: [
             {
-                name: "Mandrake",
+                name: "Warp Spider",
                 WS: 4,
                 BS: 4,
                 S: 3,
@@ -109,70 +145,170 @@ export const units = [
                 W: 1,
                 I: 5,
                 A: 1,
-                Ld: 8,
-                Sv: "5+",
+                Ld: 9,
+                Sv: "3+",
             },
-        ],
-        rules: ['[Shadow-Skinned]', '[Infiltrators]'],
-        wargear: ["[Splinter Pistol]", "[Close Combat Weapon]"],
-    },
-
-    {
-        name: "Wyches",
-        category: "Elites",
-        basePoints: 7,
-        minModels: 5,
-        maxModels: 20,
-        statline: [
             {
-                name: "Succubus",
-                WS: 4,
-                BS: 4,
+                name: "Exarch",
+                WS: 5,
+                BS: 5,
                 S: 3,
                 T: 3,
                 W: 1,
                 I: 6,
                 A: 2,
-                Ld: 8,
-                Sv: "6+",
+                Ld: 9,
+                Sv: "3+",
+            },
+        ],
+        wargear: ["[Death Spinner]", "[Jump Pack]"],
+        upgrades: [
+            {
+                type: "single", name: "[Exarch]", points: 30,
+                children: [
+                    { type: "single", name: "[Double Death Spinner]", points: 10, wargear: ["[Double Death Spinner]"] },
+                ],
+            },
+
+        ]
+    },
+
+    {
+        name: "Striking Scorpions",
+        category: "Elites",
+        basePoints: 18,
+        minModels: 5,
+        maxModels: 10,
+        statline: [
+            {
+                name: "Scorpion",
+                WS: 4,
+                BS: 4,
+                S: 4,
+                T: 3,
+                W: 1,
+                I: 5,
+                A: 1,
+                Ld: 9,
+                Sv: "3+",
             },
             {
-                name: "Wych",
+                name: "Exarch",
+                WS: 5,
+                BS: 5,
+                S: 4,
+                T: 3,
+                W: 1,
+                I: 6,
+                A: 2,
+                Ld: 9,
+                Sv: "3+",
+            },
+        ],
+        wargear: ["[Shuriken Pistol]", "[Chainsword]", "[Mandiblaster]"],
+        upgrades: [
+            {
+                type: "single", name: "[Exarch]", points: 30,
+                children: [
+                    { type: "single", name: "[Power Fist]", points: 8, wargear: ["[Power Fist]"], statlineModifiers: { S: 9 }},
+                ],
+            },
+            { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]" },
+        ]
+    },
+        {
+        name: "Howling Banshees",
+        category: "Elites",
+        basePoints: 16,
+        minModels: 5,
+        maxModels: 10,
+        statline: [
+            {
+                name: "Banshee",
                 WS: 4,
                 BS: 4,
                 S: 3,
                 T: 3,
                 W: 1,
-                I: 6,
+                I: 5,
                 A: 1,
-                Ld: 8,
-                Sv: "6+",
-            }
-
+                Ld: 9,
+                Sv: "4+",
+            },
+            {
+                name: "Exarch",
+                WS: 5,
+                BS: 5,
+                S: 3,
+                T: 3,
+                W: 1,
+                I: 6,
+                A: 2,
+                Ld: 9,
+                Sv: "3+",
+            },
         ],
-        rules: ['[Dodge]', '[Combat Drugs]'],
-        wargear: ["[Splinter Pistol]", "[Close Combat Weapon]"],
+        wargear: ["[Shuriken Pistol]", "[Power Weapon]", "[Banshee Mask]"],
         upgrades: [
             {
-                type: "single", name: "[Succubus]", points: 8,
+                type: "single", name: "[Exarch]", points: 32,
                 children: [
-                    {
-                        type: "grouped",
-                        name: "wych Special Weapons",
-                        maxPer: 1,
-                        options: [
-                            { type: "single", name: "[Close Combat Weapon]", points: 1, wargear: ["[Close Combat Weapon]"] },
-                            { type: "single", name: "[Power Weapon]", points: 10, wargear: ["[Power Weapon]"] },
-                            { type: "single", name: "[Splinter Pistol]", points: 1, wargear: ["[Splinter Pistol]"] },
-                            { type: "single", name: "[Splinter Rifle]", points: 2, wargear: ["[Splinter Rifle]"] },
-                        ]
-                    }
+                    { type: "single", name: "[Power Fist]", points: 8, wargear: ["[Power Fist]"] },
                 ],
             },
-            { type: "limited", name: "[Shredder]", points: 10, maxPer: 2, wargear: ["[Shredder]"] },
-            { type: "single", name: "[Raider]", points: 0 },
-        ],
+            { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]" },
+
+
+        ]
     },
+        {
+        name: "Fire Dragons",
+        category: "Elites",
+        basePoints: 17,
+        minModels: 5,
+        maxModels: 10,
+        statline: [
+            {
+                name: "Fire Dragon",
+                WS: 4,
+                BS: 4,
+                S: 3,
+                T: 3,
+                W: 1,
+                I: 5,
+                A: 1,
+                Ld: 9,
+                Sv: "4+",
+            },
+            {
+                name: "Exarch",
+                WS: 5,
+                BS: 5,
+                S: 3,
+                T: 3,
+                W: 1,
+                I: 6,
+                A: 2,
+                Ld: 9,
+                Sv: "3+",
+            },
+        ],
+        wargear: ["[Fusion Gun]", "[Melta Bombs]"],
+        upgrades: [
+            {
+                type: "single", name: "[Exarch]", points: 28,
+                children: [
+                    {upgradeText: "May exchange fusion gun for", type: "single", name: "[Meltagun]", points: 6, wargear: ["[Meltagun]"] },
+                ],
+            },
+            { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]" },
+
+
+        ]
+    },
+
+
+
 
     {
         name: "Warrior Squad",

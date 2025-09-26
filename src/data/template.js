@@ -99,6 +99,14 @@
 
         upgrades: [
 
+        ------------------------BASIC UPGRADES-------------------------------------------
+
+            { upgradeText: "XXX", type: "limited", name: "[XXX]", points: 15, maxPer: 2(delete for any model in the unit), wargear: ["[XXX]]"] },
+            { upgradeText: "XXX", type: "perModel", name: "[XXX]", points: 4, wargear: ["[]"] },
+            { upgradeText: "XXX", type: "single", name: "[XXX]", points: 5, wargear: ["[XXX]"], removes: ["[Bolt Pistol]"]},
+
+        --------------------------FORCED------------------------------------
+            { type: "single", name: "[XXX]", points: 5, wargear: ["[XXX]"], forced: true },
 
 
         ------------------------------NESTED UPGRADES----------------------------------------
@@ -106,22 +114,10 @@
                 type: "single", name: "[Succubus]", points: 8,
                 children: [
                     { type: "single", name: "[XXX]", points: 5, wargear: ["[XXX]"]  },
-                    { type: "single", name: "[XXX]", points: 5, wargear: ["[XXX]"]  },
                 ],
             },
 
-
-
-            ------------------------BASIC UPGRADES-------------------------------------------
-
-            { upgradeText: "XXX", type: "limited", name: "[XXX]", points: 15, maxPer: 2(delete for any model in the unit), wargear: ["[XXX]]"] },
-            { upgradeText: "XXX", type: "perModel", name: "[XXX]", points: 4, wargear: ["[]"] },
-            { upgradeText: "XXX", type: "single", name: "[XXX]", points: 5, wargear: ["[XXX]"], removes: ["[Bolt Pistol]"]},
-
-            --------------------------FORCED------------------------------------
-            { type: "single", name: "[XXX]", points: 5, wargear: ["[XXX]"], forced: true },
-
-           -------------------GROUP LIMITED------------------------------------
+        -------------------GROUP LIMITED------------------------------------
             {
                 type: "grouped",
                 name: "Term Special Weapons",

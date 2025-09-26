@@ -35,8 +35,13 @@ export const wargear = [
         description: "12\" Str 6, AP -, [Rapid Fire].",
     },
     {
+        name: "Double Death spinner",
+        description: "12\" Str 6, AP -, [Assault] 2.",
+    },
+
+    {
         name: "Fusion gun",
-        description: "12\" Str 6, AP 2, [Assault] 1.",
+        description: "12\" Str 6, AP 2, [Assault] 1, [Melta].",
     },
     {
         name: "Lasblaster",
@@ -94,7 +99,10 @@ export const wargear = [
         name: "Swooping Hawk Wings",
         description: "Unit is equipped with a [Jump Pack] and has the [Deep Strike] rule.",
     },
-
+    {
+        name: "Banshee Mask",
+        description: "This model always strikes first in hand-to-hand combat in the first round of any combat, regardless of Initiative or other factors. This applies even if they are not in base contact with the enemy. If the combat lasts more than one round 'then the Banshee Mask has no effect in subsequent rounds.",
+    },
 ];
 
 

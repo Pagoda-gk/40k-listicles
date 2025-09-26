@@ -125,7 +125,10 @@ a {
   padding: 0;
   text-align: center;
 }
-html, body, #root {
+
+html,
+body,
+#root {
   height: 100%;
   margin: 0;
 }
@@ -222,6 +225,9 @@ button:hover,
   padding: 0.5rem;
   margin-bottom: 0.5rem;
   background-color: var(--panel-bg);
+  display: flex;
+  width: 100%;
+  flex-direction: column;
 }
 
 .unit-actions {
@@ -240,14 +246,17 @@ button:hover,
 
 .fixed-button {
   position: fixed;
-  top: 0.25rem;          /* distance from top of viewport */
+  top: 0.25rem;
+  /* distance from top of viewport */
   padding: 0.5rem 1rem;
   border: 1px solid #111;
   border-radius: 0.5rem;
-  z-index: 1000;      /* stays above panels */
+  z-index: 1000;
+  /* stays above panels */
   background: var(--panel-bg);
   color: var(--text-color);
-  text-decoration: none; /* for the Link */
+  text-decoration: none;
+  /* for the Link */
   cursor: pointer;
 }
 
@@ -788,6 +797,12 @@ h4 {
   border-bottom: 1px solid var(--border-color);
 }
 
+.upgrade-row>.upgrade-group {
+  /* force nested children onto their own line */
+  flex-basis: 100%;
+  width: 100%;
+}
+
 /* Optional: last row without border */
 .upgrade-row:last-child {
   border-bottom: none;
@@ -852,7 +867,8 @@ html,
 body {
   height: 100%;
   margin: 0;
-  overflow: hidden;   /* stop body scrolling */
+  overflow: hidden;
+  /* stop body scrolling */
 }
 
 .army-builder {
@@ -865,7 +881,8 @@ body {
   display: flex;
   flex-direction: row;
   overflow-x: hidden;
-  flex: 1;           /* now this really equals full viewport height */
+  flex: 1;
+  /* now this really equals full viewport height */
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
 }
@@ -882,19 +899,22 @@ body {
 }
 
 .panel-nav {
-    position: absolute;
-  bottom: 1rem;       /* fixed distance from bottom */
+  position: absolute;
+  bottom: 1rem;
+  /* fixed distance from bottom */
   left: 0;
   right: 0;
   display: flex;
   justify-content: center;
   gap: 0.5rem;
-  margin: 0.5rem 0;        /* reset default */
+  margin: 0.5rem 0;
+  /* reset default */
   padding-bottom: 4rem;
 }
 
 .page-btn {
-  min-width: 5.5rem;        /* or fit-content if you prefer */
+  min-width: 5.5rem;
+  /* or fit-content if you prefer */
   height: 2rem;
   padding: 0 0.75rem;
   border: 1px solid #666;
@@ -909,6 +929,49 @@ body {
 
 
 .page-btn.active {
-  background: #bbbbbb; /* highlight active page */
+  background: #bbbbbb;
+  /* highlight active page */
   border-color: #242424;
 }
+
+
+/* Only indent nested upgrade-groups */
+.upgrade-row > .upgrade-group {
+  margin-left: 1rem;      /* the “indent” */
+  padding-left: 0.5rem;   /* optional spacing inside */
+}
+
+/* 1️⃣  Base row stays a horizontal flex for label + control */
+.upgrade-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* 2️⃣  When a child group is present, allow it to break onto a new line
+       but DON’T change the parent’s flex-direction */
+.upgrade-row:has(> .upgrade-group) {
+  /* remove the flex-direction: column you had */
+  flex-wrap: wrap;          /* let children wrap to the next line */
+  align-items: flex-start;  /* top-align the control with the label */
+}
+
+/* 3️⃣  Make the nested group take the full width beneath the row */
+.upgrade-row > .upgrade-group {
+  flex-basis: 100%;
+  width: 100%;
+  margin-left: 1rem;      /* indent */
+  padding-left: 0.5rem;
+}
+
+/* Keep label+control side-by-side and pinned to first line */
+.upgrade-label,
+.upgrade-control {
+  flex: 0 1 auto;      /* don’t stretch full width */
+}
+
+
+
