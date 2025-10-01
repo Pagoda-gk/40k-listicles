@@ -5,9 +5,19 @@ export const units = [
         name: "Hive Tyrant",
         category: "HQ",
         modelType: "[Monstrous Creature]",
-        basePoints: 80,
-        minModels: 1,
-        maxModels: 1,
+        unitComp: [
+            {
+                type: "singleVariant",
+                compText: "One Hive Tyrant.",
+                entries: [
+                    {
+                        name: "Hive Tyrant",
+                        basePoints: 80,
+                        wargearEach: ["[Bone Sword]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Hive Tyrant",
@@ -23,18 +33,18 @@ export const units = [
             },
         ],
         rules: ["[Independent Character]", "[Synapse Creature]", '[The Horror]'],
-        wargear: ["[Bone Sword]"],
         upgrades: [
             {
                 type: "grouped",
-                name: "Term Special Weapons",
+                name: "Hive tyr Weapons",
                 maxPer: 1,
+                user: "Hive Tyrant",
                 options: [
-                    { name: "[Venom Cannon]", points: 25, wargear: ["[Venom Cannon]"] },
-                    { name: "[Barbed Strangler]", points: 20, wargear: ["[Barbed Strangler]"] },
+                    { user: "Hive Tyrant", name: "[Venom Cannon]", points: 25, wargearEach: ["[Venom Cannon]"] },
+                    { user: "Hive Tyrant", name: "[Barbed Strangler]", points: 20, wargearEach: ["[Barbed Strangler]"] },
                 ]
             },
-            { type: "single", name: "[Flesh Hooks]", points: 1, wargear: ["[Flesh Hooks]"] },
+            { type: "single", name: "[Flesh Hooks]", points: 1, wargearMain: ["[Flesh Hooks]"] },
 
         ],
     },
@@ -42,10 +52,24 @@ export const units = [
         name: "Lictors",
         category: "Elites",
         modelType: "[Infantry]",
-        basePoints: 65,
-        minModels: 1,
-        maxModels: 3,
         unitLimit: 1,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "May take between 1 and 3 Lictors which take up a single Elites choice.",
+                minTotal: 1,
+                maxTotal: 3,
+                entries: [
+                    {
+                        name: "Lictor",
+                        basePoints: 65,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Claws]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Lictor",
@@ -61,7 +85,6 @@ export const units = [
             },
         ],
         rules: ["[Independent Character]", "[Fearless]", '[Chameleonic Scales]', '[Deep Strike]', '[Infiltrators]'],
-        wargear: ["[Claws]"],
         upgrades: [
         ],
     },
@@ -70,9 +93,23 @@ export const units = [
         name: "Tyranid Warrior Brood",
         category: "Elites",
         modelType: "[Infantry]",
-        basePoints: 32,
-        minModels: 3,
-        maxModels: 6,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "The brood consists of between 3 and 6 Tyranid Warriors.",
+                minTotal: 3,
+                maxTotal: 6,
+                entries: [
+                    {
+                        name: "Tyranid",
+                        basePoints: 32,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["2x [Close Combat Weapon]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Tyranid",
@@ -88,26 +125,28 @@ export const units = [
             },
         ],
         rules: ["[Synapse Creature]"],
-        wargear: ["2x [Close Combat Weapon]"],
         upgrades: [
             {
                 type: "grouped",
                 name: "Warrior basic",
+                upgadeText: "Any model may replace 2x Close Combat Weapons with:",
+                user: "Tyranid",
                 options: [
-                    { name: "[Deathspitter]", points: 8, wargear: ["[Deathspitter]"] },
-                    { name: "[Devourer]", points: 3, wargear: ["[Devourer]"] },
+                    { user: "Tyranid", name: "[Deathspitter]", points: 8, wargearEach: ["[Deathspitter]"], removes: ["2x [Close Combat Weapon]"] },
+                    { user: "Tyranid", name: "[Devourer]", points: 3, wargearEach: ["[Devourer]"], removes: ["2x [Close Combat Weapon]"] },
                 ]
             },
             {
                 type: "grouped",
                 name: "Warrior special weapons",
                 maxPer: 1,
+                user: "Tyranid",
                 options: [
-                    { name: "[Venom Cannon]", points: 20, wargear: ["[Venom Cannon]"] },
-                    { name: "[Barbed Strangler]", points: 15, wargear: ["[Barbed Strangler]"] },
+                    { user: "Tyranid", name: "[Venom Cannon]", points: 20, wargearEach: ["[Venom Cannon]"] },
+                    { user: "Tyranid", name: "[Barbed Strangler]", points: 15, wargearEach: ["[Barbed Strangler]"] },
                 ]
             },
-            { type: "perModel", name: "[Flesh Hooks]", points: 1, wargear: ["[Flesh Hooks]"] },
+            { type: "perModel", name: "[Flesh Hooks]", points: 1, wargearMain: ["[Flesh Hooks]"] },
         ],
     },
 
@@ -115,9 +154,23 @@ export const units = [
         name: "Genestealer Brood",
         category: "Troops",
         modelType: "[Infantry]",
-        basePoints: 22,
-        minModels: 5,
-        maxModels: 10,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "The brood consists of between 5 and 10 Genestealers.",
+                minTotal: 5,
+                maxTotal: 10,
+                entries: [
+                    {
+                        name: "Genestealer",
+                        basePoints: 22,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Razor-Sharp Claws]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Genestealer",
@@ -141,9 +194,23 @@ export const units = [
         name: "Termagant Brood",
         category: "Troops",
         modelType: "[Infantry]",
-        basePoints: 7,
-        minModels: 10,
-        maxModels: 30,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "The brood consists of between 10 and 30 Termagants.",
+                minTotal: 10,
+                maxTotal: 30,
+                entries: [
+                    {
+                        name: "Termagants",
+                        basePoints: 7,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Fleshborer]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Termagants",
@@ -158,15 +225,28 @@ export const units = [
                 Sv: "6+",
             },
         ],
-        wargear: ["[Fleshborer]"],
     },
 
     {
         name: "Ripper Swarms",
         category: "Troops",
-        basePoints: 12,
-        minModels: 1,
-        maxModels: 5,
+         unitComp: [
+            {
+                type: "corePool",
+                compText: "A Ripper Swarm consists of between 1 and 5 Ripper bases.",
+                minTotal: 1,
+                maxTotal: 5,
+                entries: [
+                    {
+                        name: "Ripper Base",
+                        basePoints: 12,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Jaws]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Ripper Base",
@@ -182,7 +262,6 @@ export const units = [
             },
         ],
         rules: ["[Fearless]"],
-        wargear: ["Jaws"],
     },
 
     {
@@ -192,6 +271,23 @@ export const units = [
         minModels: 1,
         maxModels: 10,
         unitLimit: 1,
+         unitComp: [
+            {
+                type: "corePool",
+                compText: "You may include between 1 and 10 Spore Mines as a single Troops Choice.",
+                minTotal: 1,
+                maxTotal: 10,
+                entries: [
+                    {
+                        name: "Spore Mine",
+                        basePoints: 5,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                       
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Spore Mine",
@@ -211,9 +307,23 @@ export const units = [
     {
         name: "Hormagaunt Broods",
         category: "Fast Attack",
-        basePoints: 5,
-        minModels: 10,
-        maxModels: 20,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "The brood consists of between 10 and 20 Hormagaunts.",
+                minTotal: 10,
+                maxTotal: 20,
+                entries: [
+                    {
+                        name: "Hormagaunt",
+                        basePoints: 6,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["Claws"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Hormagaunt",
@@ -228,31 +338,43 @@ export const units = [
                 Sv: "6+",
             },
         ],
-        wargear: ["Claws"],
         rules: ["[Bounding Leap]"],
 
     },
     {
         name: "Gargoyle Brood",
         category: "Fast Attack",
-        basePoints: 10,
-        minModels: 5,
-        maxModels: 10,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "The brood consists of between 5 and 10 Gargoyles.",
+                minTotal: 5,
+                maxTotal: 10,
+                entries: [
+                    {
+                        name: "Gargoyle",
+                        basePoints: 10,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Fleshborer]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
-                name: "Hormagaunt",
-                WS: 4,
+                name: "Gargoyle",
+                WS: 3,
                 BS: 3,
                 S: 3,
                 T: 3,
                 W: 1,
                 I: 4,
                 A: 1,
-                Ld: 5,
+                Ld: 10,
                 Sv: "6+",
             },
         ],
-        wargear: ["[Fleshborer]"],
         rules: ["[Wings]", "[Deep Strike]"],
 
     },
@@ -260,9 +382,19 @@ export const units = [
         name: "Carnifex",
         category: "Heavy Support",
         modelType: "[Monstrous Creature]",
-        basePoints: 90,
-        minModels: 1,
-        maxModels: 1,
+         unitComp: [
+            {
+                type: "singleVariant",
+                compText: "One Carnifex.",
+                entries: [
+                    {
+                        name: "Carnifex",
+                        basePoints: 90,
+                        wargearEach: ["Claws"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Carnifex",
@@ -277,9 +409,8 @@ export const units = [
                 Sv: "5++",
             },
         ],
-        wargear: ["[Claws]"],
         upgrades: [
-            { type: "single", name: "[Bio-Plasma]", points: 15, wargear: ["[Bio-Plasma]"] },
+            { user: "Carnifex", type: "single", name: "[Bio-Plasma]", points: 15, wargearEach: ["[Bio-Plasma]"] },
 
         ],
     },
@@ -287,10 +418,24 @@ export const units = [
     {
         name: "Zoanthropes",
         category: "Heavy Support",
-        basePoints: 40,
-        minModels: 1,
-        maxModels: 3,
         unitLimit: 1,
+         unitComp: [
+            {
+                type: "corePool",
+                compText: "You may include between 1 and 3 Zoanthropes as a single Heavy Support choice. Each is an Independent Character.",
+                minTotal: 1,
+                maxTotal: 3,
+                entries: [
+                    {
+                        name: "Zoanthrope",
+                        basePoints: 40,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["Claws", "[Warp Blast]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Zoanthrope",
@@ -306,23 +451,36 @@ export const units = [
             },
         ],
         rules: ["[Individual]", "[Fearless]"],
-        wargear: ["[Claws]", "[Warp Blast]"],
         upgrades: [
-            { type: "single", name: "[Flesh Hooks]", points: 1, wargear: ["[Flesh Hooks]"] },
+            { upgradeText: "Any Zoanthrope may take", user: "Zoanthrope", type: "limited", name: "[Flesh Hooks]", points: 1, wargearEach: ["[Flesh Hooks]"] },
 
         ],
     },
 
-        {
+    {
         name: "Biovores",
         category: "Heavy Support",
-        basePoints: 50,
-        minModels: 1,
-        maxModels: 3,
         unitLimit: 1,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "You may include between 1 and 3 Biovores as a single Heavy Support choice. Each is an Independent Character.",
+                minTotal: 1,
+                maxTotal: 3,
+                entries: [
+                    {
+                        name: "Biovore",
+                        basePoints: 50,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["Jaws", "[Fire Spore Mine]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
-                name: "Zoanthrope",
+                name: "Biovore",
                 WS: 3,
                 BS: 3,
                 S: 3,
@@ -335,7 +493,6 @@ export const units = [
             },
         ],
         rules: ["[Individual]"],
-        wargear: ["[Jaws]", "[Fire Spore Mine]"],
         upgrades: [
         ],
     },

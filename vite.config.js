@@ -31,7 +31,7 @@ export default defineConfig({
     })
   ],
   server: {
-    host: 'localhost', // or `true` for 0.0.0.0 if you want LAN access
+    host: true, // or `true` for 0.0.0.0 if you want LAN access
     port: 5173
   }
 })

@@ -47,11 +47,13 @@ export default function RightPanel({ armyState, registry, openRuleModal, renderW
                   })()}
                 </tr>
               </thead>
-              <tbody>
-                {unit.statlines.map((profile, i) => (
-                  <tr key={i}>
-                    <td className="unit-name">{profile.name}</td>
+              <tbody>{unit.statlines.length === 1
+                ? (
+                  // ✅ case: only one statline → always render
+                  <tr>
+                    <td className="unit-name">{unit.statlines[0].name}</td>
                     {(() => {
+                      const profile = unit.statlines[0];
                       if (profile.isVehicle) {
                         return (
                           <>
@@ -91,7 +93,54 @@ export default function RightPanel({ armyState, registry, openRuleModal, renderW
                       }
                     })()}
                   </tr>
-                ))}
+                )
+                : (
+                  unit.statlines
+                    .map((profile, i) => (
+                      <tr key={i}>
+                        <td className="unit-name">{profile.name}</td>
+                        {(() => {
+                          if (profile.isVehicle) {
+                            return (
+                              <>
+                                <td>{profile.armourFront || profile.FrontArmour}</td>
+                                <td>{profile.armourSide || profile.SideArmour}</td>
+                                <td>{profile.armourRear || profile.RearArmour}</td>
+                                <td>{profile.BS}</td>
+                              </>
+                            );
+                          } else if (profile.isDreadnought) {
+                            return (
+                              <>
+                                <td>{profile.WS}</td>
+                                <td>{profile.BS}</td>
+                                <td>{profile.S}</td>
+                                <td>{profile.armourFront || profile.FrontArmour}</td>
+                                <td>{profile.armourSide || profile.SideArmour}</td>
+                                <td>{profile.armourRear || profile.RearArmour}</td>
+                                <td>{profile.I}</td>
+                                <td>{profile.A}</td>
+                              </>
+                            );
+                          } else {
+                            return (
+                              <>
+                                <td>{profile.WS}</td>
+                                <td>{profile.BS}</td>
+                                <td>{profile.S}</td>
+                                <td>{profile.T}</td>
+                                <td>{profile.W}</td>
+                                <td>{profile.I}</td>
+                                <td>{profile.A}</td>
+                                <td>{profile.Ld}</td>
+                                <td>{profile.Sv}</td>
+                              </>
+                            );
+                          }
+                        })()}
+                      </tr>
+                    ))
+                )}
               </tbody>
             </table>
           )}

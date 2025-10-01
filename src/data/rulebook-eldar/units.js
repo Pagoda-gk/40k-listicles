@@ -4,11 +4,21 @@ export const units = [
     {
         name: "Avatar",
         category: "HQ",
-        basePoints: 80,
-        minModels: 1,
-        maxModels: 1,
         modelType: "[Monstrous Creature]",
         unitLimit: 1,
+        unitComp: [
+            {
+                type: "singleVariant",
+                compText: "1 Avatar.",
+                entries: [
+                    {
+                        name: "Avatar",
+                        basePoints: 80,
+                        wargearEach: ["[The Wailing Doom]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Avatar",
@@ -23,18 +33,51 @@ export const units = [
                 Sv: "5++",
             },
         ],
-
         rules: ["[Independent Character]", "[Fearless]"],
-        wargear: ["[The Wailing Doom]"],
     },
 
 
     {
         name: "Phoenix Lord",
         category: "HQ",
-        basePoints: 55,
-        minModels: 1,
-        maxModels: 1,
+        unitComp: [
+            {
+                type: "singleVariant",
+                compText: "Phoneix Lord of one of the following types:",
+                entries: [
+                    {
+                        name: "Dark Reaper",
+                        basePoints: 75,
+                        wargearEach: ["[Shuriken Pistol]", "[Shuriken Cannon]", "[Power Weapon]"]
+                    },
+                    {
+                        name: "Howling Banshee",
+                        basePoints: 70,
+                        wargearEach: ["[Shuriken Pistol]", "[Banshee Mask]", "[Power Weapon]", "[Silent Death]"]
+                    },
+                    {
+                        name: "Striking Scorpion",
+                        basePoints: 73,
+                        wargearEach: ["[Shuriken Pistol]", "[Mandiblaster]", "[Chainsword]", "[Power Fist]"]
+                    },
+                    {
+                        name: "Swooping Hawk",
+                        basePoints: 85,
+                        wargearEach: ["[Shuriken Pistol]", "[Swooping Hawk Wings]", "2x [Power Weapons]"]
+                    },
+                    {
+                        name: "Fire Dragon",
+                        basePoints: 72,
+                        wargearEach: ["[Shuriken Pistol]", "[Power Weapon]", "[Meltagun]"]
+                    },
+                    {
+                        name: "Dire Avenger",
+                        basePoints: 63,
+                        wargearEach: ["[Shuriken Pistol]", "[Twin-Linked] [Shuriken Catapult]", "[Power Weapon]"]
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Phoenix Lord",
@@ -50,32 +93,44 @@ export const units = [
             },
         ],
         rules: ["[Independent Character]"],
-        wargear: ["[Shuriken Pistol]"],
         upgrades: [
-            {
-                type: "grouped",
-                name: "Phoenix Lord",
-                upgradeText: "The Phoenix Lord must be one of the following:",
-                maxPer: 1,
-                options: [
-                    { name: "[Dark Reaper]", points: 20, wargear: ["[Shuriken Cannon]", "[Power Weapon]"] },
-                    { name: "[Howling Banshee]", points: 15, wargear: ["[Banshee Mask]", "[Power Weapon]", "[Silent Death]"] },
-                    { name: "[Striking Scorpion]", points: 18, wargear: ["[Mandiblaster]", "[Chainsword]", "[Power Fist]"], statlineModifiers: { S: 9 } },
-                    { name: "[Swooping Hawk]", points: 30, wargear: ["[Swooping Hawk Wings]", "[Power Weapon] x2"], },
-                    { name: "[Fire Dragon]", points: 17, wargear: ["[Power Weapon]", "[Meltagun]"] },
-                    { name: "[Dire Avenger]", points: 8, wargear: ["[Twin-Linked] [Shuriken Catapult]", "[Power Weapon]"] },
-
-                ]
-            },
         ],
 
     },
     {
         name: "Farseer",
         category: "HQ",
-        basePoints: 65,
-        minModels: 1,
-        maxModels: 1,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "One Farseer. The Farseer may be joined by up to 5 Warlocks, who may not move on their own. They must either remain in a unit with the Farseer, or they may be assigned to join Wraithguard or Guardian squads, no more than one Warlock per unit. If assigned to a Jetbike Squad then the Warlock must be mounted on a Jetbike.",
+                minTotal: 1,
+                maxTotal: 6,
+                entries: [
+                    {
+                        name: "Farseer",
+                        basePoints: 65,
+                        min: 1,          // each entry can have its own min/max
+                        max: 1,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Shuriken Pistol]", "[Witchblade]"],
+                    },
+                    {
+                        name: "Warlock",
+                        basePoints: 26,
+                        min: 0,          // each entry can have its own min/max
+                        max: 5,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Shuriken Pistol]", "[Witchblade]"],
+                    },
+                    {
+                        name: "Jetbike Warlock",
+                        basePoints: 48,
+                        min: 0,          // each entry can have its own min/max
+                        max: 5,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Shuriken Pistol]", "[Witchblade]", "[Eldar Jetbike]", "[Twin-Linked] [Shuriken Catapult]"],
+                    },
+                ]
+            },
+        ],
         statline: [
             {
                 name: "Farseer",
@@ -115,18 +170,9 @@ export const units = [
             },
 
         ],
-        rules: ["[Independent Character] (unless accompanied by Warlocks)", "[Psychic Power - Runesight]"],
-        wargear: ["[Shuriken Pistol]", "[Witchblade]"],
+        rules: ["[Independent Character] (unless accompanied by Warlocks)", "[Psychic Power - Runesight]", "[Warlock]"],
         upgrades: [
-            {
-                upgradeText: "The Farseer may be accompanied by up to 5", type: "limited", name: "[Warlock]", points: 26, maxPer: 5,
-                children: [
-                    { type: "limited", maxPer: 5, upgradeText: "Warlocks assigned to Guardian Jetbike squadrons must be a", name: "[Jetbike Warlock]", points: 22, wargear: ["[Jetbike]", "[Twin-Linked] [Shuriken Catapult] (Jetbke)"] },
-                ],
-            },
-            { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]" },
-
-
+            { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]", wargearMain: ["Wave Serpent [Dedicated Transport]"] },
         ]
     },
     {
@@ -210,13 +256,13 @@ export const units = [
             {
                 type: "single", name: "[Exarch]", points: 30,
                 children: [
-                    { type: "single", name: "[Power Fist]", points: 8, wargear: ["[Power Fist]"], statlineModifiers: { S: 9 }},
+                    { type: "single", name: "[Power Fist]", points: 8, wargear: ["[Power Fist]"], statlineModifiers: { S: 9 } },
                 ],
             },
             { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]" },
         ]
     },
-        {
+    {
         name: "Howling Banshees",
         category: "Elites",
         basePoints: 16,
@@ -261,7 +307,7 @@ export const units = [
 
         ]
     },
-        {
+    {
         name: "Fire Dragons",
         category: "Elites",
         basePoints: 17,
@@ -298,7 +344,7 @@ export const units = [
             {
                 type: "single", name: "[Exarch]", points: 28,
                 children: [
-                    {upgradeText: "May exchange fusion gun for", type: "single", name: "[Meltagun]", points: 6, wargear: ["[Meltagun]"] },
+                    { upgradeText: "May exchange fusion gun for", type: "single", name: "[Meltagun]", points: 6, wargear: ["[Meltagun]"] },
                 ],
             },
             { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]" },

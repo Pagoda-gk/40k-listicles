@@ -57,7 +57,22 @@ export function buildUnitState(unit) {
                 }
             }
         });
+        if (displayedStatlines.length === 0 && unit.statline) {
+            const firstStatline = Array.isArray(unit.statline)
+                ? unit.statline[0]
+                : unit.statline;
+
+            if (firstStatline) {
+                displayedStatlines.push({
+                    ...firstStatline,
+                    isVehicle: unit.isVehicle,
+                    isDreadnought: unit.isDreadnought,
+                });
+            }
+        }
     }
+
+
 
     // --- 2. Build composition models from unitComp ---------------------------
     const compositionModels = [];
@@ -95,81 +110,81 @@ export function buildUnitState(unit) {
     const unitWargear = [...(unit.wargearMain || [])];
     const unitRules = [...(unit.rules || [])];
 
-// --- 4. Apply chosen upgrades (persistent per-user pools) ---------------
-const assignmentPools = compositionModels.reduce((acc, m) => {
-    if (!acc[m.name]) acc[m.name] = [];
-    acc[m.name].push(m);
-    return acc;
-}, {});
+    // --- 4. Apply chosen upgrades (persistent per-user pools) ---------------
+    const assignmentPools = compositionModels.reduce((acc, m) => {
+        if (!acc[m.name]) acc[m.name] = [];
+        acc[m.name].push(m);
+        return acc;
+    }, {});
 
-// Helper: apply removes + add wargear
-const applyWargear = (model, up) => {
-    if (Array.isArray(up.removes)) {
-        model.gear = model.gear.filter(g => !up.removes.includes(g));
-    }
-    model.gear.push(...(up.wargearEach || []));
-};
-
-(unit.chosenUpgrades || []).forEach(up => {
-    const c = up.count || 0;
-    if (c <= 0) return;
-
-    // Per-model gear (distribute across models using persistent pools)
-    if (up.wargearEach) {
-        const pool = assignmentPools[up.user] ?? [];
-
-        if (!pool.length) {
-            // no matching models in this unit — skip
-        } else if (pool.length === 1) {
-            // only one model of this type: stack all upgrades on it
-            const model = pool[0];
-            // apply once — UI should prevent selecting a count > 1 when unit count === 1,
-            // but we loop c times to be robust in case input is unexpected
-            for (let i = 0; i < c; i++) {
-                applyWargear(model, up);
-            }
-        } else {
-            // multiple models: give each upgrade to a different model (consume pool)
-            for (let i = 0; i < c && pool.length > 0; i++) {
-                const model = pool.shift(); // remove this instance from the pool (persistent)
-                applyWargear(model, up);
-            }
-            // if c > original pool size, we stop assigning extras rather than reusing models
-            // (change behavior below if you want cycling instead)
+    // Helper: apply removes + add wargear
+    const applyWargear = (model, up) => {
+        if (Array.isArray(up.removes)) {
+            model.gear = model.gear.filter(g => !up.removes.includes(g));
         }
-    }
+        model.gear.push(...(up.wargearEach || []));
+    };
 
-    // Unit-wide gear
-    if (up.wargearMain) unitWargear.push(...up.wargearMain);
+    (unit.chosenUpgrades || []).forEach(up => {
+        const c = up.count || 0;
+        if (c <= 0) return;
 
-    // Extra rules
-    if (up.rules) unitRules.push(...up.rules);
+        // Per-model gear (distribute across models using persistent pools)
+        if (up.wargearEach) {
+            const pool = assignmentPools[up.user] ?? [];
 
-    // Statline modifiers
-    if (up.statlineModifiers) {
-        displayedStatlines = displayedStatlines.map(s => ({
-            ...s,
-            ...up.statlineModifiers,
-        }));
-    }
-});
+            if (!pool.length) {
+                // no matching models in this unit — skip
+            } else if (pool.length === 1) {
+                // only one model of this type: stack all upgrades on it
+                const model = pool[0];
+                // apply once — UI should prevent selecting a count > 1 when unit count === 1,
+                // but we loop c times to be robust in case input is unexpected
+                for (let i = 0; i < c; i++) {
+                    applyWargear(model, up);
+                }
+            } else {
+                // multiple models: give each upgrade to a different model (consume pool)
+                for (let i = 0; i < c && pool.length > 0; i++) {
+                    const model = pool.shift(); // remove this instance from the pool (persistent)
+                    applyWargear(model, up);
+                }
+                // if c > original pool size, we stop assigning extras rather than reusing models
+                // (change behavior below if you want cycling instead)
+            }
+        }
 
-// --- 5. Flatten & merge identical models for display ---------------------
-const grouped = {};
+        // Unit-wide gear
+        if (up.wargearMain) unitWargear.push(...up.wargearMain);
 
-compositionModels.forEach(m => {
-    // Use the *entire* gear set as the key, but keep it per model
-    // Sorting ensures consistent ordering when multiple items exist
-    const gearKey = m.gear.length
-        ? `${m.name}, ${[...m.gear].sort().join(", ")}`
-        : m.name;
+        // Extra rules
+        if (up.rules) unitRules.push(...up.rules);
 
-    grouped[gearKey] = (grouped[gearKey] || 0) + 1;
-});
+        // Statline modifiers
+        if (up.statlineModifiers) {
+            displayedStatlines = displayedStatlines.map(s => ({
+                ...s,
+                ...up.statlineModifiers,
+            }));
+        }
+    });
 
-const composition = Object.entries(grouped).map(([label, count]) =>
-    count > 1 ? `${label} (${count})` : label
-);
+    // --- 5. Flatten & merge identical models for display ---------------------
+    const grouped = {};
+
+    compositionModels.forEach(m => {
+        // Use the *entire* gear set as the key, but keep it per model
+        // Sorting ensures consistent ordering when multiple items exist
+        const gearKey = m.gear.length
+            ? `${m.name}, ${[...m.gear].sort().join(", ")}`
+            : m.name;
+
+        grouped[gearKey] = (grouped[gearKey] || 0) + 1;
+    });
+
+    const composition = Object.entries(grouped).map(([label, count]) =>
+        count > 1 ? `${label} (${count})` : label
+    );
 
     // --- 6. Return the unit’s display state ----------------------------------
     return {

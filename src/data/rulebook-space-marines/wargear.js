@@ -19,11 +19,19 @@ export const wargear = [
     This weapon always ignores [Armour Saves]
     This weapon always strikes last`,
   },
+  {
+    name: "Power Sword",
+    description: `Uses users strength to wound and ignores [Armour Saves].`,
+  },
 
 
 
 
   //Ranged
+  {
+    name: "Bolt Pistol",
+    description: `12" Str 4, AP 5, [Pistol]`,
+  },
   {
     name: "Bolter",
     description: "24\" Str 4, AP 5, Rapid Fire.",
@@ -32,60 +40,103 @@ export const wargear = [
   {
     name: "Boltgun",
     description: "24\" Str 4, AP 5, Rapid Fire.",
-    cost: 2,
-  },
-  {
-    name: "Plasma Pistol",
-    description: "na.",
-    cost: 15,
   },
   {
     name: "Storm Bolter",
-    description: "12\" Str 3, AP 5, [Pistol].",
-    cost: 5,
+    description: "24\" Str 4, AP 5, [Assault] 2.",
   },
   {
-    name: "Combi-flamer",
-    description: "12\" Str 3, AP 5, Pistol.",
-    cost: 10,
-  },
-
-  {
-    name: "Combi-melta",
-    description: "12\" Str 3, AP 5, Pistol.",
-    cost: 15,
+    name: "Heavy Bolter",
+    description: "36\" Str 5, AP 4, [Heavy] 3.",
   },
   {
-    name: "Frag Grenades",
-    description: "na.",
-    cost: 15,
+    name: "Shotgun",
+    description: "12\" Str 3, AP -, [Assault] 2.",
   },
   {
-    name: "Krak Grenades",
-    description: "na.",
-    cost: 10,
+    name: "Assault Cannon",
+    description: "24\" Str 6, AP 4, [Heavy] 3, [Jam].",
   },
   {
-    name: "Combi-Weapon",
-    description: `This is essentially two weapons in one, and the weilder may choose which profile to use.  `,
+    name: "Autocannon",
+    description: "48\" Str 7, AP 4, [Heavy] 2.",
   },
   {
-    name: "Bolt Pistol",
-    description: `12" Str 4, AP 5, [Pistol]`,
+    name: "Lascannon",
+    description: "48\" Str 9, AP 2, [Heavy] 1.",
+  },
+  {
+    name: "Flamer",
+    description: `Template Str 4, AP 5, [Assault] 1`,
   },
   {
     name: "Heavy Flamer",
     description: `Template Str 5, AP 4, [Assault] 1`,
   },
   {
-    name: "Power Sword",
-    description: `Uses users strength to wound and ignores [Armour Saves].`,
+    name: "Meltagun",
+    description: `12" Str 8, AP 1, [Assault] 1`,
   },
   {
-    name: "Heavy Bolter",
-    description: "36\" Str 5, AP 4, [Heavy] 3.",
-    cost: 2,
+    name: "Multimelta",
+    description: `24" Str 8, AP 1, [Heavy] 1, [Melta]`,
   },
+  {
+    name: "Sniper Rifle",
+    description: `36" Str X, AP 6, [Heavy] 1, [Sniper]`,
+  },
+  {
+    name: "Missile Launcher",
+    description: `This weapon has two firing modes, chose when firing.
+    
+    Krak: 48" Str 8, AP 3, [Heavy] 1
+    
+    Frag: 48" Str 4, AP 6 [Heavy] 1, [Blast]`,
+  },
+  {
+    name: "Plasma Pistol",
+    description: "12\" Str 4, AP 5, [Assault] 2, [Get Hot!].",
+  },
+  {
+    name: "Plasma Gun",
+    description: "24\" Str 7, AP 2, [Rapid Fire], [Get Hot!].",
+  },
+  {
+    name: "Plasma Cannon",
+    description: "36\" Str 7, AP 2, [Heavy] 1, [Blast], [Get Hot!].",
+  },
+
+  {
+    name: "Combi-Flamer",
+    description: `This weapon has two firing modes, chose when firing.
+    
+    Boltgun: 24" Str 4, AP 5, Rapid Fire.
+
+    Flamer: Template Str 4, AP 5, [Assault] 1`,
+  },
+  {
+    name: "Combi-Melta",
+    description: `This weapon has two firing modes, chose when firing.
+
+    Boltgun: 24" Str 4, AP 5, Rapid Fire.
+    
+    Meltagun: 12" Str 8, AP 1, [Assault] 1
+    `,
+  },
+  {
+    name: "Combi-Plasma",
+    description: `This weapon has two firing modes, chose when firing.
+
+    Boltgun: 24" Str 4, AP 5, Rapid Fire.
+    
+    Plasma Gun: 24\" Str 7, AP 2, [Rapid Fire], [Get Hot!]`,
+  },
+
+
+
+
+
+
 
 
   //Wargear
@@ -93,7 +144,6 @@ export const wargear = [
   {
     name: "Rosarius",
     description: "The wearer gets a 4+ [Invulnerable Save].",
-    cost: 10,
   },
 
   {

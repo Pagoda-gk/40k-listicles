@@ -6,7 +6,7 @@ export const rules = [
   },
   {
     name: "Synapse Creature",
-    description: `Any Tyranid unit with a model within 12\" of this creature automatically passes every [Morale Check] and tests to regroup, regardless of restrictions.`,
+    description: `Any Tyranid unit with a model within 12" of this creature automatically passes every [Morale Check] and tests to regroup, regardless of restrictions.`,
   },
   {
     name: "The Horror",

@@ -19,7 +19,7 @@ export const wargear = [
     //Ranged weapons
 
     {
-        name: "Shuriken pistol",
+        name: "Shuriken Pistol",
         description: "12\" Str 4, AP 5, [Pistol].",
     },
     {

@@ -88,7 +88,7 @@ If assaulted by the enemy the pinned unit will fight normally, ignoring the fall
     description: `Melta weapons roll an extra D6 to penetrate vehicles at half range or under (12" for multi-meltas or 6" for meltaguns).`
   },
   {
-    name: "Sniper Rifles",
+    name: "Sniper",
     description: `Always hits on 2+ and its Strength always equals the Toughness of the target (so it wounds on a 4+ regardless of Toughness).
   
   Units suffering casualties from sniper rifles must test to avoid pinning as for a barrage. 
@@ -125,7 +125,11 @@ b) The new target is within the firer's range and line of sight.`
     
     Krak grenades need both hands to trigger so models using them can only make a single attack and don't get bonus attacks for charging, additional hand weapons or anything else. Krak grenades can also be used to make a Death or Glory attack on an overrunning tank.`
   },
-    {
+  {
+    name: "Frag Grenades",
+    description: `Allows the user to fight at initiative order when Assaulting a uit in cover.`
+  },
+  {
     name: "Force Weapon",
     description: `Counts as Power Weapon.`
   },
@@ -150,7 +154,7 @@ b) The new target is within the firer's range and line of sight.`
     description: `This model does not form a unit with others from the selection and moves as an individual unit.`,
   },
 
-  
+
 
 
   //-----------------INDEPENDENT CHARACTERS------------------------------
@@ -232,6 +236,10 @@ This unit advances and falls back 3D6" `
 
   //----------------GENERAL RULES----------------------------------------
 
+    {
+    name: "Fearless",
+    description: `This unit automatically passes morale checks`
+  },
   {
     name: "",
     description: ``

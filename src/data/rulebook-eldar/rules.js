@@ -24,7 +24,7 @@ export const rules = [
   },
       {
     name: "Warlock",
-    description: `Warlocks are characters, but may not move on their own. They must either remain in a unit with the Farseer, or they may be assigned to join Wraithguard or Guardian squads. If assigned to other squads then no more than one Warlock may join each unit.`,
+    description: `Warlocks are characters, but may not move on their own. They must either remain in a unit with the Farseer, or they may be assigned to join Wraithguard or Guardian squads. If assigned to other squads then no more than one Warlock may join each unit. If assigned to a Jetbike Squad then the Warlock must be mounted on a Jetbike.`,
   },
 ];
 
