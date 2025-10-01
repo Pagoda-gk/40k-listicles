@@ -11,6 +11,9 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { useState, useEffect, useRef } from "react";
+import { buildArmyState } from "./utils/armyState";
+import RightPanel from "./RightPanel";
+
 
 
 function Stepper({ value, min = 0, max = Infinity, onChange }) {
@@ -51,6 +54,11 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
             return sum + (sel ? sel.count : 0);
         }, 0);
 
+    // helper: check if a model exists in the unit
+    const modelExists = (modelName) =>
+        unit.unitComp?.flatMap(pool => pool.entries)
+            .some(e => e.name === modelName && ((e.count ?? e.min ?? 0) > 0));
+
     return (
         <div className="upgrade-group">
             {upgrades.map((up) => {
@@ -58,257 +66,221 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                 const value = current ? current.count : 0;
                 const selected = Boolean(value);
 
+                // Disable upgrade if it requires a model that isn't in the unit
+                const disabledByUser = up.user ? !modelExists(up.user) : false;
+
                 // Format label with rule references
                 const label = renderWithReferences(up.name, registry, openRuleModal);
 
-                if (up.type === "perModel") {
-                    const current = unit.chosenUpgrades.find(sel => sel.name === up.name);
-                    const value = current ? current.count : 0;
-                    const selected = Boolean(value);
+                // --- Single / perModel / limited / grouped logic ---
+                switch (up.type) {
 
-                    const prefix = up.upgradeText
-                        ? renderWithReferences(up.upgradeText, registry, openRuleModal)
-                        : "The entire unit may take";
+                    case "single":
+                    case "perModel": {
+                        const prefix = up.upgradeText
+                            ? renderWithReferences(up.upgradeText, registry, openRuleModal)
+                            : "May take";
 
+                        return (
+                            <div key={up.name} className="upgrade-row">
+                                <span className="upgrade-label">
+                                    {prefix} {label} (+{getUpgradeCost(up, unit.selectedVariants?.profile)} pts)
+                                </span>
+                                <div className="upgrade-control">
+                                    <input
+                                        type="checkbox"
+                                        checked={selected}
+                                        disabled={up.forced || disabledByUser}
+                                        onChange={() =>
+                                            onToggle(unit.id, { ...up, count: selected ? 0 : 1 })
+                                        }
+                                        className="upgrade-input-checkbox"
+                                    />
+                                </div>
+                            </div>
+                        );
+                    }
 
-                    return (
-                        <div key={up.name} className="upgrade-row">
-                            <span className="upgrade-label">
-                                {prefix}{" "}
-                                {label} (+{getUpgradeCost(up, unit.selectedVariants?.profile)} pts per model)
-                            </span>
+                    case "limited": {
+                        const modelCount = getUnitModelCount(unit);
+                        const maxAllowed = up.maxPer ?? modelCount;
+                        const prefix = up.upgradeText
+                            ? renderWithReferences(up.upgradeText, registry, openRuleModal)
+                            : (up.maxPer ? `May take up to ${maxAllowed} of:` : "Any model in the unit may take");
 
-                            <div className="upgrade-control">
-                                <input
-                                    type="checkbox"
-                                    checked={selected}
-                                    disabled={up.forced}
-                                    onChange={() =>
-                                        onToggle(unit.id, { ...up, count: selected ? 0 : 1 })
+                        return (
+                            <div key={up.name} className="upgrade-row">
+                                <span className="upgrade-label">
+                                    {prefix} {label} (+{up.points} pts each)
+                                </span>
+                                <div className="upgrade-control">
+                                    <Stepper
+                                        value={value}
+                                        min={0}
+                                        max={maxAllowed}
+                                        onChange={newVal => onToggle(unit.id, { ...up, count: newVal })}
+                                        disabled={disabledByUser}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    case "grouped": {
+                        const totalSelected = totalSelectedInGroup(up);
+                        const modelCount = getUnitModelCount(unit);
+                        const maxTotal = up.maxPer ?? modelCount;
+                        const heading = up.upgradeText ??
+                            (up.maxPer ? `May take up to ${maxTotal} of:` : `Each model may take one of the following:`);
+
+                        return (
+                            <div key={up.name} className="upgrade-group-card">
+                                <div className="upgrade-group-heading">
+                                    {renderWithReferences(heading, registry, openRuleModal)}
+                                </div>
+                                {up.options.map(opt => {
+                                    // At the top of the map for up.options inside grouped
+                                    const groupDisabled = up.user && !modelExists(up.user);
+
+                                    const current = unit.chosenUpgrades.find(sel => sel.name === opt.name);
+                                    const value = current ? current.count : 0;
+
+                                    const maxAllowed = maxTotal - (totalSelected - value);
+                                    const disabledOpt = opt.user ? !modelExists(opt.user) : false;
+
+                                    // Radio-style if maxTotal === 1
+                                    if (maxTotal === 1) {
+                                        const selectedOpt = Boolean(value);
+                                        return (
+                                            <label key={opt.name} className="upgrade-option-row">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedOpt}
+                                                    disabled={groupDisabled}
+                                                    onChange={() => {
+                                                        up.options.forEach(o => {
+                                                            if (o.name !== opt.name) {
+                                                                onToggle(unit.id, { ...o, count: 0 });
+                                                            }
+                                                        });
+                                                        onToggle(unit.id, { ...opt, count: selectedOpt ? 0 : 1 });
+                                                    }}
+                                                    className="upgrade-input-checkbox"
+                                                />
+                                                <span className="upgrade-label">
+                                                    {renderWithReferences(opt.name, registry, openRuleModal)} (+{opt.points} pts)
+                                                </span>
+                                            </label>
+                                        );
                                     }
-                                    className="upgrade-input-checkbox"
-                                />
-                            </div>
 
-                            {selected && up.children && (
-                                <UpgradeOptions
-                                    unit={unit}
-                                    upgrades={up.children}
-                                    onToggle={onToggle}
-                                    registry={registry}
-                                    openRuleModal={openRuleModal}
-                                />
-                            )}
-                        </div>
-                    );
-                }
-
-                // --- LIMITED (covers fixed + per-model) ---
-                if (up.type === "limited") {
-                    const current = unit.chosenUpgrades.find(sel => sel.name === up.name);
-                    const value = current ? current.count : 0;
-
-                    // one line decides the cap:
-                    const maxAllowed = up.maxPer ?? unit.count;
-
-                    // build label text
-                    const prefix = up.upgradeText
-                        ? renderWithReferences(up.upgradeText, registry, openRuleModal)
-                        : (up.maxPer
-                            ? `May take up to ${maxAllowed} of:`
-                            : "Any model in the unit may take");
-
-                    return (
-                        <div key={up.name} className="upgrade-row">
-                            <span className="upgrade-label">
-                                {prefix}{" "}
-                                {renderWithReferences(up.name, registry, openRuleModal)}
-                                {" "} (+{up.points} pts each)
-                            </span>
-
-                            <div className="upgrade-control">
-                                <Stepper
-                                    value={value}
-                                    min={0}
-                                    max={maxAllowed}
-                                    onChange={newVal =>
-                                        onToggle(unit.id, { ...up, count: newVal })
-                                    }
-                                />
-                            </div>
-
-                            {selected && up.children && (
-                                <UpgradeOptions
-                                    unit={unit}
-                                    upgrades={up.children}
-                                    onToggle={onToggle}
-                                    registry={registry}
-                                    openRuleModal={openRuleModal}
-                                />
-                            )}
-                        </div>
-                    );
-                }
-
-
-
-                if (up.type === "single") {
-                    const current = unit.chosenUpgrades.find(sel => sel.name === up.name);
-                    const value = current ? current.count : 0;
-                    const selected = Boolean(value);
-
-                    const prefix = up.upgradeText
-                        ? renderWithReferences(up.upgradeText, registry, openRuleModal)
-                        : "May take";
-
-
-                    return (
-                        <div key={up.name} className="upgrade-row">
-                            <span className="upgrade-label">
-                                {prefix}{" "}
-                                {label} (+{getUpgradeCost(up, unit.selectedVariants?.profile)} pts)
-                            </span>
-
-                            <div className="upgrade-control">
-                                <input
-                                    type="checkbox"
-                                    checked={selected}
-                                    disabled={up.forced}
-                                    onChange={() =>
-                                        onToggle(unit.id, { ...up, count: selected ? 0 : 1 })
-                                    }
-                                    className="upgrade-input-checkbox"
-                                />
-                            </div>
-
-                            {selected && up.children && (
-                                <UpgradeOptions
-                                    unit={unit}
-                                    upgrades={up.children}
-                                    onToggle={onToggle}
-                                    registry={registry}
-                                    openRuleModal={openRuleModal}
-                                />
-                            )}
-                        </div>
-                    );
-                }
-
-
-                // --- GROUPED (covers fixed + per-model) ---
-                if (up.type === "grouped") {
-                    // how many models in total already have any option from this group
-                    const totalSelected = up.options.reduce((sum, opt) => {
-                        const sel = unit.chosenUpgrades.find(u => u.name === opt.name);
-                        return sum + (sel ? sel.count : 0);
-                    }, 0);
-
-                    // dynamic group cap: explicit maxPer first, else unit size
-                    const maxTotal = up.maxPer ?? unit.count;
-
-                    const heading = up.upgradeText ??
-                        (up.maxPer
-                            ? (maxTotal === 1
-                                ? "May take one of the following:"
-                                : `May take up to ${maxTotal} of:`)
-                            : `Each model may take one of the following:`);
-
-                    return (
-                        <div key={up.name} className="upgrade-group-card">
-                            <div className="upgrade-group-heading">
-                                {renderWithReferences(heading, registry, openRuleModal)}
-                            </div>
-
-                            {up.options.map(opt => {
-                                const current = unit.chosenUpgrades.find(sel => sel.name === opt.name);
-                                const value = current ? current.count : 0;
-
-                                // For each option, max = remaining slots in the group + current value
-                                const maxAllowed = maxTotal - (totalSelected - value);
-
-                                // If maxTotal is 1, treat like a radio/checkbox set
-                                if (maxTotal === 1) {
-                                    const selected = Boolean(value);
+                                    // Stepper style for multiple selections
                                     return (
-                                        <label key={opt.name} className="upgrade-option-row">
-                                            <input
-                                                type="checkbox"
-                                                checked={selected}
-                                                onChange={() => {
-                                                    // deselect others
-                                                    up.options.forEach(o => {
-                                                        if (o.name !== opt.name) {
-                                                            onToggle(unit.id, { ...o, count: 0 });
-                                                        }
-                                                    });
-                                                    // toggle this one
-                                                    onToggle(unit.id, { ...opt, count: selected ? 0 : 1 });
-                                                }}
-                                                className="upgrade-input-checkbox"
-                                            />
+                                        <div key={opt.name} className="upgrade-row">
                                             <span className="upgrade-label">
-                                                {renderWithReferences(opt.name, registry, openRuleModal)}
-                                                {" "} (+{opt.points} pts)
+                                                {renderWithReferences(opt.name, registry, openRuleModal)} (+{opt.points} pts each)
                                             </span>
-                                        </label>
-                                    );
-                                }
-
-                                // otherwise use a stepper
-                                return (
-                                    <div key={opt.name} className="upgrade-row">
-                                        <span className="upgrade-label">
-                                            {renderWithReferences(opt.name, registry, openRuleModal)}
-                                            {" "} (+{opt.points} pts each)
-                                        </span>
-                                        <div className="upgrade-control">
-                                            <Stepper
-                                                value={value}
-                                                min={0}
-                                                max={maxAllowed}
-                                                onChange={v => onToggle(unit.id, { ...opt, count: v })}
-                                            />
+                                            <div className="upgrade-control">
+                                                <Stepper
+                                                    value={value}
+                                                    min={0}
+                                                    max={maxAllowed}
+                                                    onChange={v => onToggle(unit.id, { ...opt, count: v })}
+                                                    disabled={groupDisabled}
+                                                />
+                                            </div>
                                         </div>
+                                    );
+                                })}
+                            </div>
+                        );
+                    }
 
-                                        {value > 0 && opt.children && (
-                                            <UpgradeOptions
-                                                unit={unit}
-                                                upgrades={opt.children}
-                                                onToggle={onToggle}
-                                                registry={registry}
-                                                openRuleModal={openRuleModal}
-                                            />
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    );
+                    default:
+                        return null;
                 }
-
-
-                return null; // fallback
             })}
         </div>
     );
 }
 
 function getMinimumUnitCost(unit) {
-    const base = unit.basePoints * unit.minModels;
+    let base = 0;
+
+    if (unit.unitComp?.length) {
+        unit.unitComp.forEach(pool => {
+            if (pool.type === "singleVariant" && pool.entries?.length) {
+                // always take the cheapest for the minimum cost
+                const cheapest = pool.entries.reduce(
+                    (min, e) =>
+                        (e.basePoints ?? 0) < (min.basePoints ?? 0) ? e : min,
+                    pool.entries[0]
+                );
+                base += (cheapest.basePoints ?? 0);
+            } else if (pool.type === "corePool" && pool.entries?.length) {
+                const firstEntry = pool.entries[0];
+                const minTotal = pool.minTotal ?? 0;
+                base += (firstEntry.basePoints ?? 0) * minTotal;
+            }
+        });
+    } else {
+        base = (unit.basePoints ?? 0) * (unit.minModels ?? 0);
+    }
+
+    // Add forced upgrades
     const forced = (unit.upgrades || [])
         .filter(up => up.forced)
         .reduce((sum, up) => {
             if (up.type === "perModel") {
-                // forced per model → pay for each model
-                return sum + up.points * unit.minModels;
+                const modelCount = unit.unitComp?.[0]?.minTotal ?? unit.minModels ?? 1;
+                return sum + (up.points ?? 0) * modelCount;
             }
-            return sum + up.points;  // single/limited forced assumed count 1
+            return sum + (up.points ?? 0);
         }, 0);
+
     return base + forced;
+}
+
+function initializeUnitComp(unit) {
+    // make a deep copy to avoid mutating the original template
+    const newUnit = JSON.parse(JSON.stringify(unit));
+
+    if (newUnit.unitComp?.length) {
+        newUnit.unitComp.forEach(pool => {
+            if (pool.type === "corePool" && pool.entries?.length) {
+                let remaining = pool.minTotal ?? 0;
+
+                pool.entries.forEach((entry, i) => {
+                    // Give the first entry all of the minimum models
+                    entry.count = i === 0 ? remaining : 0;
+                });
+            }
+        });
+    }
+
+    // fallback for units without unitComp
+    if (!newUnit.unitComp && newUnit.minModels) {
+        newUnit.count = newUnit.minModels;
+    }
+
+    return newUnit;
+}
+
+function getUnitModelCount(unit) {
+    return (unit.unitComp || []).reduce((sum, pool) =>
+        sum +
+        (pool.entries || []).reduce((s, e) => s + (e.count ?? 0), 0)
+        , 0);
 }
 
 
 export default function Listicles({ saved }) {
+
+    const [savedLists, setSavedLists] = useState(() => {
+        return JSON.parse(localStorage.getItem("savedLists") || "[]");
+    });
+    
+
 
     const APP_NAME = "Listicles";
 
@@ -322,14 +294,9 @@ export default function Listicles({ saved }) {
         const savedLists = JSON.parse(localStorage.getItem("savedLists") || "[]");
         const list = savedLists[listIndex];
         if (!list) return <p>Saved list not found!</p>;
+
         initialArmy = list.army;
-        faction = {
-            name: list.name,
-            system: list.system,
-            units: [],
-            rules: [],
-            wargear: [],
-        };
+        faction = factions[list.factionId]; // 👈 reload from factions
     } else {
         faction = factions[factionId];
     }
@@ -404,16 +371,46 @@ export default function Listicles({ saved }) {
         const forced = (unit.upgrades || [])
             .filter(up => up.forced)
             .map(up => ({ ...up, count: 1 }));
+
+        // Copy the unit
         const entry = {
             ...unit,
             id: Date.now(),
             count: unit.minModels,
             chosenUpgrades: forced,
             selectedVariants: {
-                profile: unit.variants?.profile?.options[0].name ?? null,
-                armour: unit.variants?.armour?.options[0].name ?? null
-            }
+                profile: unit.variants?.profile?.options?.[0]?.name ?? null,
+                armour: unit.variants?.armour?.options?.[0]?.name ?? null
+            },
+            unitComp: unit.unitComp?.map(pool => {
+                if (pool.type === "singleVariant" && pool.entries?.length) {
+                    // Auto-select the cheapest variant
+                    const cheapestIndex = pool.entries.reduce(
+                        (minIdx, e, idx, arr) =>
+                            (e.basePoints ?? 0) < (arr[minIdx].basePoints ?? 0) ? idx : minIdx,
+                        0
+                    );
+                    return {
+                        ...pool,
+                        entries: pool.entries.map((e, i) => ({
+                            ...e,
+                            count: i === cheapestIndex ? 1 : 0
+                        }))
+                    };
+                } else {
+                    // For other pool types (attachments, corePool, etc.), don't force counts
+                    return {
+                        ...pool,
+                        entries: pool.entries.map(e => ({
+                            ...e,
+                            count: e.count ?? 0
+                        }))
+                    };
+                }
+                return pool;
+            })
         };
+
         setArmy([...army, entry]);
     };
 
@@ -474,19 +471,22 @@ export default function Listicles({ saved }) {
 
 
     const totalPoints = army.reduce((sum, u) => {
-        const base = u.basePoints * u.count;
+        // points from unitComp
+        const unitCompPoints = (u.unitComp || []).reduce((poolSum, pool) => {
+            return poolSum + (pool.entries || []).reduce((entrySum, entry) => {
+                const count = entry.count ?? 0;
+                return entrySum + (entry.basePoints ?? 0) * count;
+            }, 0);
+        }, 0);
 
-        const selectedVariantName = u.selectedVariants?.profile;
-        const variantExtraPoints =
-            u.variants?.profile?.options.find(p => p.name === selectedVariantName)?.extraPoints || 0;
-
-        const upgrades = (u.chosenUpgrades || []).reduce((s, up) => {
-            const cost = getUpgradeCost(up, selectedVariantName);
-            if (up.type === "perModel") return s + cost * u.count;
+        // points from upgrades
+        const upgradePoints = (u.chosenUpgrades || []).reduce((s, up) => {
+            const cost = getUpgradeCost(up, u.selectedVariants?.profile);
+            if (up.type === "perModel") return s + cost * (u.count || 0);
             return s + cost * (up.count || 1);
         }, 0);
 
-        return sum + base + variantExtraPoints + upgrades;
+        return sum + unitCompPoints + upgradePoints;
     }, 0);
 
 
@@ -516,16 +516,16 @@ export default function Listicles({ saved }) {
             const i = panelOrder.indexOf(activePanel);
             if (i < panelOrder.length - 1) {
                 const nextPanel = panelOrder[i + 1];
-                setActivePanel(nextPanel);
-                scrollToPanel(panelRefs[nextPanel], nextPanel);
+                if (nextPanel === "reference") openRightPanel();
+                else goToPanel(nextPanel);
             }
         },
         onSwipedRight: () => {
             const i = panelOrder.indexOf(activePanel);
             if (i > 0) {
                 const prevPanel = panelOrder[i - 1];
-                setActivePanel(prevPanel);
-                scrollToPanel(panelRefs[prevPanel], prevPanel);
+                if (prevPanel === "reference") openRightPanel();
+                else goToPanel(prevPanel);
             }
         },
         delta: 90,
@@ -578,6 +578,17 @@ export default function Listicles({ saved }) {
         return () => container.removeEventListener("scroll", onScroll);
     }, []);
 
+    function getUnitPoints(u) {
+        if (!u.unitComp?.length) return (u.count ?? 0) * (u.basePoints ?? 0);
+
+        return u.unitComp.reduce((poolSum, pool) => {
+            return poolSum + (pool.entries?.reduce((entrySum, entry) => {
+                return entrySum + (entry.count ?? 0) * (entry.basePoints ?? 0);
+            }, 0) || 0);
+        }, 0);
+    }
+
+
     // --- helpers for middle panel ---
     // Returns a merged statline array based on selected variant & armour
     function getMergedStatlines(u) {
@@ -599,7 +610,7 @@ export default function Listicles({ saved }) {
 
         const variantPoints =
             (activeProfile?.extraPoints || 0) + (armourOpt?.extraPoints || 0);
-        const unitPoints = u.basePoints * u.count + variantPoints
+        const unitPoints = getUnitPoints(u) + upgradePoints + variantExtraPoints;
 
 
         // if a profile is chosen, start from that; otherwise use the base statline array
@@ -620,6 +631,16 @@ export default function Listicles({ saved }) {
         reference: "Ref",
     };
 
+    const [armyState, setArmyState] = useState([]);
+
+    const openRightPanel = () => {
+        const state = buildArmyState(army);
+        setArmyState(state);
+
+        goToPanel("reference");
+    };
+
+
     return (
         <div className="army-builder" {...handlers}>
 
@@ -631,6 +652,7 @@ export default function Listicles({ saved }) {
             {/* Home and save button */}
             <Link to="/" className="fixed-button home">Home</Link>
             <button onClick={() => setShowSaveDialog(true)} className="fixed-button save">Save</button>
+
 
             <div ref={containerRef} className="panels-wrapper">
 
@@ -653,7 +675,7 @@ export default function Listicles({ saved }) {
                                         return (
                                             <button
                                                 key={u.name}
-                                                onClick={() => addUnit(u)}
+                                                onClick={() => addUnit(initializeUnitComp(u))}
                                                 className="unit-button"
                                                 style={{
                                                     display: "flex",
@@ -694,52 +716,71 @@ export default function Listicles({ saved }) {
                                 <h3>{cat}</h3>
                                 {unitsInCat.map((u) => {
 
+                                    function updateUnitCompEntry(unitId, poolIndex, entryIndex, newCount) {
+                                        setArmy(prev =>
+                                            prev.map(u =>
+                                                u.id !== unitId ? u : {
+                                                    ...u,
+                                                    unitComp: u.unitComp.map((p, i) =>
+                                                        i === poolIndex
+                                                            ? {
+                                                                ...p,
+                                                                entries: p.entries.map((e, j) =>
+                                                                    j === entryIndex ? { ...e, count: newCount } : e
+                                                                )
+                                                            }
+                                                            : p
+                                                    )
+                                                }
+                                            )
+                                        );
+                                    }
+
+                                    const unitCompPoints = u.unitComp?.reduce((poolSum, pool) => {
+                                        return poolSum + pool.entries.reduce((entrySum, entry) => {
+                                            const count = entry.count ?? 0;
+                                            return entrySum + count * (entry.basePoints ?? 0);
+                                        }, 0);
+                                    }, 0) ?? 0;
+                                    const upgradePoints = (u.chosenUpgrades || []).reduce((s, up) => {
+                                        const cost = getUpgradeCost(up, u.selectedVariants?.profile);
+                                        if (up.type === "perModel") return s + cost * (u.count || 0);
+                                        return s + cost * (up.count || 1);
+                                    }, 0);
+
+                                    const totalUnitPoints = unitCompPoints + upgradePoints;
+
+
+
                                     // --- Variant-dependent unit points ---
                                     const selectedVariantName = u.selectedVariants?.profile;
 
                                     // Base points
                                     const basePoints = u.basePoints * u.count;
 
-                                    // Extra points from selected variant itself
-                                    const variantExtraPoints =
-                                        u.variants?.profile?.options.find(p => p.name === selectedVariantName)?.extraPoints || 0;
-
-                                    // Points from chosen upgrades
-                                    const upgradePoints = (u.chosenUpgrades || []).reduce((sum, up) => {
-                                        const cost = getUpgradeCost(up, selectedVariantName);
-                                        if (up.type === "perModel") return sum + cost * u.count;
-                                        return sum + cost * (up.count || 1);
-                                    }, 0);
-
-                                    const unitPoints = basePoints + variantExtraPoints + upgradePoints;
-
-
                                     const activeProfile = u.variants?.profile?.options.find(
-                                        o => o.name === u.selectedVariants?.profile
+                                        p => p.name === selectedVariantName
                                     );
-                                    const statlines = activeProfile
-                                        ? [{ name: activeProfile.name, ...activeProfile.statline }]
-                                        : u.statline;
 
-                                    // pick the profile variant first
-                                    const baseProfile =
-                                        u.variants?.profile?.options.find(
-                                            o => o.name === u.selectedVariants?.profile
-                                        );
+                                    const variantExtraPoints = activeProfile?.extraPoints || 0;
+                                    const statlines = activeProfile ? [{ name: activeProfile.name, ...activeProfile.statline }] : u.statline;
 
-                                    // then the armour choice
-                                    const armourOpt =
-                                        u.variants?.armour?.options.find(
-                                            o => o.name === u.selectedVariants?.armour
-                                        );
 
-                                    // Start mergedStats with profile statline
+                                    const unitPoints = unitCompPoints; // + any global upgrades if needed
+
+
+
+                                    const profile = activeProfile || { name: u.name, statline: u.statline || {} };
                                     let mergedStats = [
-                                        {
-                                            name: baseProfile?.name || u.name,
-                                            ...baseProfile?.statline,
-                                        },
+                                        { name: profile.name, ...profile.statline }
                                     ];
+
+                                    // apply any statline modifiers
+                                    (u.chosenUpgrades || []).forEach(up => {
+                                        if (up.statlineModifiers) {
+                                            mergedStats = mergedStats.map(stat => ({ ...stat, ...up.statlineModifiers }));
+                                        }
+                                    });
 
                                     u.chosenUpgrades.forEach(up => {
                                         if (up.statlineModifiers) {
@@ -750,17 +791,10 @@ export default function Listicles({ saved }) {
                                         }
                                     });
 
-                                    // Compute merged wargear from base unit + chosen upgrades
-                                    const mergedWargear = [
-                                        ...(u.wargear || []),
-                                        ...u.chosenUpgrades.flatMap(up => up.wargear || [])
-                                    ];
-
-
                                     return (
                                         <div key={u.id} className="unit-card">
                                             <h4 style={{ cursor: "pointer" }}>
-                                                {u.name} ({unitPoints} pts)
+                                                {u.name} ({totalUnitPoints} pts)
                                             </h4>
 
                                             {/* Action Buttons */}
@@ -770,9 +804,9 @@ export default function Listicles({ saved }) {
                                             </div>
 
                                             {u.variants && (
-                                                <div className="variant-selectors" style={{ display: "flex", gap: "1rem" }}>
+                                                <div className="variant-selectors">
                                                     {Object.entries(u.variants).map(([key, cfg]) => (
-                                                        <div key={key} style={{ flex: 1 }}>
+                                                        <div key={key} className="variant-select">
                                                             <label>{cfg.label}: </label>
                                                             <select
                                                                 value={u.selectedVariants?.[key] || ""}
@@ -803,24 +837,143 @@ export default function Listicles({ saved }) {
                                             {/*for unit types*/}
                                             {u.modelType && (
                                                 <div className="unit-type">
-                                                   {renderWithReferences(u.modelType, registry,
-                                                   openRuleModal)}
+                                                    {renderWithReferences(u.modelType, registry,
+                                                        openRuleModal)}
                                                 </div>
                                             )}
-                                            
-                                            {/* Model Count */}
-                                            <h5 className="models-heading">Models</h5>
 
-                                            {u.minModels === 1 && u.maxModels === 1 ? (
-                                                // fixed at exactly 1 model
-                                                <span className="models-fixed">1 model</span>
+
+
+                                            {/* Unit Composition */}
+                                            <h5 className="models-heading">Unit Composition</h5>
+
+                                            {u.unitComp?.length ? (
+
+                                                u.unitComp.map((pool, pIndex) => {
+                                                    if (pool.type !== "singleVariant") {
+
+                                                        const alreadyChosen = pool.entries.some(e => (e.count ?? 0) > 0);
+                                                        if (!alreadyChosen && pool.entries.length && pool.type !== "attachment") {
+                                                            const cheapestIndex = pool.entries.reduce(
+                                                                (minIdx, e, idx, arr) =>
+                                                                    (e.basePoints ?? 0) < (arr[minIdx].basePoints ?? 0) ? idx : minIdx,
+                                                                0
+                                                            );
+
+                                                            setArmy(prev =>
+                                                                prev.map(unit =>
+                                                                    unit.id !== u.id
+                                                                        ? unit
+                                                                        : {
+                                                                            ...unit,
+                                                                            unitComp: unit.unitComp.map((p, i) =>
+                                                                                i !== pIndex
+                                                                                    ? p
+                                                                                    : {
+                                                                                        ...p,
+                                                                                        entries: p.entries.map((en, idx) => ({
+                                                                                            ...en,
+                                                                                            count: idx === cheapestIndex ? 1 : 0,
+                                                                                        })),
+                                                                                    }
+                                                                            ),
+                                                                        }
+                                                                )
+                                                            );
+                                                        }
+                                                    }
+
+                                                    return (
+                                                        <div key={pIndex} className="comp-pool">
+                                                            {pool.compText && <p className="comp-text">{pool.compText}</p>}
+
+                                                            {/* singleVariant logic */}
+                                                            {pool.type === "singleVariant" ? (
+                                                                <div className="comp-entry">
+                                                                    <div className="entry-row">
+                                                                        <label className="entry-label">Choose Variant</label>
+                                                                        <select
+                                                                            value={pool.entries.find(e => (e.count ?? 0) > 0)?.name || ""}
+                                                                            onChange={e => {
+                                                                                const chosen = e.target.value;
+                                                                                setArmy(prev =>
+                                                                                    prev.map(unit =>
+                                                                                        unit.id !== u.id
+                                                                                            ? unit
+                                                                                            : {
+                                                                                                ...unit,
+                                                                                                unitComp: unit.unitComp.map((p, i) =>
+                                                                                                    i !== pIndex
+                                                                                                        ? p
+                                                                                                        : {
+                                                                                                            ...p,
+                                                                                                            entries: p.entries.map(en => ({
+                                                                                                                ...en,
+                                                                                                                count: en.name === chosen ? 1 : 0,
+                                                                                                            })),
+                                                                                                        }
+                                                                                                ),
+                                                                                            }
+                                                                                    )
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            {pool.entries.map(opt => (
+                                                                                <option key={opt.name} value={opt.name}>
+                                                                                    {opt.name} ({opt.basePoints} pts)
+                                                                                </option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+
+                                                                pool.entries.map((entry, eIndex) => {
+                                                                    const entryCount = entry.count ?? 0;
+
+
+                                                                    const currentTotal = pool.entries.reduce((s, e, i) => s + ((e.count ?? 0) * (!e.ignoresUnitMax ? 1 : 0)), 0);
+                                                                    const minAllowed = entry.min ?? 0;
+                                                                    const maxAllowed = entry.ignoresUnitMax
+                                                                        ? entry.max ?? 1
+                                                                        : pool.maxTotal != null
+                                                                            ? Math.min(entry.max ?? pool.maxTotal, pool.maxTotal - (currentTotal - entryCount))
+                                                                            : entry.max ?? 99;
+
+
+                                                                    return (
+                                                                        <div key={eIndex} className="comp-entry">
+                                                                            {entry.compText && <p className="entry-comp-text">{entry.compText}</p>}
+                                                                            <div className="entry-row">
+                                                                                <span className="entry-label">{entry.name}</span>
+                                                                                <Stepper
+                                                                                    value={entryCount}
+                                                                                    min={Math.max(entry.min ?? 0, pool.minTotal - pool.entries.reduce((s, e, i) => i !== eIndex ? s + (e.count ?? 0) : s, 0))}
+                                                                                    max={maxAllowed}
+                                                                                    onChange={val => updateUnitCompEntry(u.id, pIndex, eIndex, val)}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })
                                             ) : (
-                                                <Stepper
-                                                    value={u.count}
-                                                    min={u.minModels}
-                                                    max={u.maxModels}
-                                                    onChange={(val) => updateCount(u.id, val)}
-                                                />
+                                                // keep the old simple stepper for units without unitComp
+                                                <>
+                                                    {u.minModels === 1 && u.maxModels === 1 ? (
+                                                        <span className="models-fixed">1 model</span>
+                                                    ) : (
+                                                        <Stepper
+                                                            value={u.count}
+                                                            min={u.minModels}
+                                                            max={u.maxModels}
+                                                            onChange={val => updateCount(u.id, val)}
+                                                        />
+                                                    )}
+                                                </>
                                             )}
 
 
@@ -930,43 +1083,86 @@ export default function Listicles({ saved }) {
                                                     );
                                             })()}
 
+                                            {/* Base Wargear Section */}
+                                            <div className="unit-wargear">
+                                                <h5>Base Wargear:</h5>
+
+                                                {/* Wargear for each unitComp entry */}
+                                                <div className="army-panel">
+                                                    {u.unitComp?.map((pool, pIndex) =>
+                                                        pool.entries.map((entry, eIndex) =>
+                                                            entry.wargearEach?.length ? (
+                                                                <p key={`${pIndex}-${eIndex}`}>
+                                                                    Each {entry.name} is equipped with:{" "}
+                                                                    {entry.wargearEach.map((w, i) => (
+                                                                        <span key={i}>
+                                                                            {renderWithReferences(w, registry, openRuleModal)}
+                                                                            {i < entry.wargearEach.length - 1 ? ", " : ""}
+                                                                        </span>
+                                                                    ))}
+                                                                    .
+                                                                </p>
+                                                            ) : null
+                                                        )
+                                                    )}
+                                                </div>
+
+                                                {/* Wargear for the main unit */}
+                                                <div className="army-panel">
+                                                    {u.wargearMain?.length ? (
+                                                        <p>
+                                                            The entire unit is equipped with:{" "}
+                                                            {u.wargearMain.map((w, i) => (
+                                                                <span key={i}>
+                                                                    {renderWithReferences(w, registry, openRuleModal)}
+                                                                    {i < u.wargearMain.length - 1 ? ", " : ""}
+                                                                </span>
+                                                            ))}
+                                                            .
+                                                        </p>
+                                                    ) : null}
+                                                </div>
+                                            </div>
+
+
 
                                             {/* Rules */}
                                             {
                                                 u.rules?.length > 0 && (
-                                                    <>
-                                                        <h4>Rules:</h4>
+                                                    <div className="unit-wargear">
+                                                        <h5>Rules:</h5>
                                                         <div className="army-panel">
-                                                            {renderWithReferences(u.rules.join(", "), registry, openRuleModal)}
+                                                            {u.rules.map((r, i) => <div key={i}>{renderWithReferences(r, registry, openRuleModal)}</div>)}
                                                         </div>
-                                                    </>
+                                                    </div>
                                                 )
                                             }
 
                                             {/* Wargear */}
                                             {
                                                 (u.wargear?.length || u.chosenUpgrades?.some(up => up.wargear)) > 0 && (
-                                                    <>
-                                                        <h4>Wargear:</h4>
+                                                    <div className="unit-wargear">
+                                                        <h5>Wargear:</h5>
                                                         <div>
                                                             <div className="army-panel">
-                                                                {renderWithReferences(u.wargear.join(", "), registry, openRuleModal)}
-                                                            </div>
+                                                                {u.wargear.map((w, i) => <div key={i}>{renderWithReferences(w, registry, openRuleModal)}</div>)}                                                            </div>
                                                         </div>
-                                                    </>
+                                                    </div>
                                                 )
                                             }
 
 
                                             {/* Upgrades */}
-                                            <h4>Options:</h4>
-                                            <UpgradeOptions
-                                                unit={u}
-                                                upgrades={u.upgrades || []}
-                                                onToggle={toggleUpgrade}
-                                                registry={registry}
-                                                openRuleModal={openRuleModal}
-                                            />
+                                            <div className="unit-wargear">
+                                                <h5>Options:</h5>
+                                                <UpgradeOptions
+                                                    unit={u}
+                                                    upgrades={u.upgrades || []}
+                                                    onToggle={toggleUpgrade}
+                                                    registry={registry}
+                                                    openRuleModal={openRuleModal}
+                                                />
+                                            </div>
 
                                         </div>
                                     );
@@ -978,315 +1174,16 @@ export default function Listicles({ saved }) {
                     <h3>Total: {totalPoints} pts</h3>
                 </div>
 
+
                 {/* Right Panel */}
                 <div ref={rightRef} className="panel panel-right">
-                    <h2>Army Reference</h2>
-
-                    {/* --- Faction-wide rules --- */}
-                    {rules && rules.length > 0 && (
-                        <div className="faction-rules">
-                            <h3>Faction Rules</h3>
-                            <div className="army-panel">
-                                {renderWithReferences(
-                                    // Look up the “Faction Rules” object if present,
-                                    // else join all rule names you’d like to display.
-                                    (() => {
-                                        const factionRule = rules.find(r => r.name.toLowerCase() === "faction rules");
-                                        return factionRule
-                                            ? factionRule.description
-                                            : rules.map(r => `[${r.name}]`).join(", ");
-                                    })(),
-                                    registry,
-                                    openRuleModal
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-
-                    {categories.map((cat) => {
-                        const catUnits = army.filter((u) =>
-                            u.category === cat);
-                        if (!catUnits.length) return null;
-                        return (
-                            <div key={cat} style={{
-                                marginBottom:
-                                    "1rem"
-                            }}>
-                                <h3>{cat}</h3>
-                                {catUnits.map((u) => {
-
-                                    // --- Compute final wargear with additions/removals ---
-                                    let finalWargear = [...(u.wargear || [])];
-
-                                    (u.chosenUpgrades || []).forEach(up => {
-                                        // Remove any gear replaced by the upgrade
-                                        if (up.removes) {
-                                            finalWargear = finalWargear.filter(g => !up.removes.includes(g));
-                                        }
-
-                                        // Add gear from the upgrade
-                                        if (up.wargear) {
-                                            const newGear = up.wargear.map(name =>
-                                                up.type === "limited" && up.count > 1
-                                                    ? `${name} x${up.count}`
-                                                    : name
-                                            );
-                                            finalWargear.push(...newGear);
-                                        }
-                                    });
-
-
-                                    const baseGear = u.wargear || [];
-
-                                    // Add upgrades’ wargear, but for limited ones include “ xN” if N>1
-                                    const upgradeGear = (u.chosenUpgrades || []).flatMap(up => {
-                                        const names = up.wargear || [];
-                                        // if it's a limited upgrade with count > 1, append " xN"
-                                        return names.map(name =>
-                                            up.type === "limited" && up.count > 1
-                                                ? `${name} x${up.count}`
-                                                : name
-                                        );
-                                    });
-
-                                    // Determine the statline to display for this unit
-                                    let displayedStatlines = [];
-
-                                    if (u.variants?.profile) {
-                                        // Find the selected variant
-                                        const selectedProfileName = u.selectedVariants?.profile;
-                                        const profileOption = u.variants.profile.options.find(p => p.name === selectedProfileName);
-
-                                        if (profileOption) {
-                                            displayedStatlines.push({
-                                                name: profileOption.name,
-                                                ...profileOption.statline
-                                            });
-                                        }
-                                    } else if (u.statline) {
-                                        // Fallback to the original statline array
-                                        displayedStatlines = u.statline;
-                                    }
-
-
-
-                                    // Remove duplicates but preserve " xN" counts
-                                    finalWargear = Array.from(new Set(finalWargear));
-
-                                    // Filter displayed statlines based on whether the unit has taken the upgrade that grants them
-                                    const filteredStatlines = displayedStatlines.filter(profile => {
-                                        // If there’s a chosen upgrade with count > 0 that grants this profile, keep it
-                                        const hasUpgrade = u.chosenUpgrades?.some(up => up.count > 0 && up.grantsProfile === profile.name);
-
-                                        // Also keep it if it’s the base profile (not variant-dependent)
-                                        const isBaseProfile = !u.variants?.profile?.options?.some(opt => opt.name === profile.name);
-
-                                        return hasUpgrade || isBaseProfile;
-                                    });
-
-
-
-                                    return (
-
-                                        <div key={u.id} className="unit-card">
-                                            <h4>{u.count}× {u.name}</h4>
-
-                                            {/*for unit types*/}
-                                            {u.modelType && (
-                                                <div className="unit-type">
-                                                   {renderWithReferences(u.modelType, registry,
-                                                   openRuleModal)}
-                                                </div>
-                                            )}
-
-
-                                            {/* Statline */}
-                                            {displayedStatlines.length > 0 && (
-                                                u.isDreadnought ? (
-                                                    // ---------- Vehicle statline ----------
-                                                    <table className="unit-table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Name</th>
-                                                                <th>WS</th>
-                                                                <th>BS</th>
-                                                                <th>S</th>
-                                                                <th>Fr</th>
-                                                                <th>Si</th>
-                                                                <th>Re</th>
-                                                                <th>I</th>
-                                                                <th>A</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {displayedStatlines
-                                                                .filter(profile => {
-                                                                    const needsUpgrade = (u.upgrades || []).some(
-                                                                        up => up.name.replace(/\[|\]/g, "") === profile.name
-                                                                    );
-                                                                    if (!needsUpgrade) return true;
-                                                                    return u.chosenUpgrades.some(
-                                                                        cu =>
-                                                                            cu.name.replace(/\[|\]/g, "") === profile.name &&
-                                                                            cu.count > 0
-                                                                    );
-                                                                })
-                                                                .map((profile, i) => {
-                                                                    let modifiedProfile = { ...profile };
-                                                                    (u.chosenUpgrades || []).forEach(up => {
-                                                                        if (up.statlineModifiers) {
-                                                                            modifiedProfile = { ...modifiedProfile, ...up.statlineModifiers };
-                                                                        }
-                                                                    });
-
-                                                                    return (
-                                                                        <tr key={i}>
-                                                                            <td className="unit-name">{modifiedProfile.name}</td>
-                                                                            {["WS", "BS", "S", "armourFront", "armourSide", "armourRear", "I", "A"].map(stat => (
-                                                                                <td key={stat}>{modifiedProfile[stat]}</td>
-                                                                            ))}
-                                                                        </tr>
-                                                                    );
-                                                                })}
-                                                        </tbody>
-                                                    </table>
-                                                ) :
-                                                    u.isVehicle ? (
-                                                        // ---------- Vehicle statline ----------
-                                                        <table className="unit-table">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Name</th>
-                                                                    <th>Front Armour</th>
-                                                                    <th>Side Armour</th>
-                                                                    <th>Rear Armour</th>
-                                                                    <th>BS</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {displayedStatlines
-                                                                    .filter(profile => {
-                                                                        const needsUpgrade = (u.upgrades || []).some(
-                                                                            up => up.name.replace(/\[|\]/g, "") === profile.name
-                                                                        );
-                                                                        if (!needsUpgrade) return true;
-                                                                        return u.chosenUpgrades.some(
-                                                                            cu =>
-                                                                                cu.name.replace(/\[|\]/g, "") === profile.name &&
-                                                                                cu.count > 0
-                                                                        );
-                                                                    })
-                                                                    .map((profile, i) => {
-                                                                        let modifiedProfile = { ...profile };
-                                                                        (u.chosenUpgrades || []).forEach(up => {
-                                                                            if (up.statlineModifiers) {
-                                                                                modifiedProfile = { ...modifiedProfile, ...up.statlineModifiers };
-                                                                            }
-                                                                        });
-
-                                                                        return (
-                                                                            <tr key={i}>
-                                                                                <td className="unit-name">{modifiedProfile.name}</td>
-                                                                                {["armourFront", "armourSide", "armourRear", "BS"].map(stat => (
-                                                                                    <td key={stat}>{modifiedProfile[stat]}</td>
-                                                                                ))}
-                                                                            </tr>
-                                                                        );
-                                                                    })}
-                                                            </tbody>
-                                                        </table>
-                                                    ) : (
-                                                        <table className="unit-table">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Name</th>
-                                                                    <th>WS</th>
-                                                                    <th>BS</th>
-                                                                    <th>S</th>
-                                                                    <th>T</th>
-                                                                    <th>W</th>
-                                                                    <th>I</th>
-                                                                    <th>A</th>
-                                                                    <th>Ld</th>
-                                                                    <th>Sv</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {displayedStatlines
-                                                                    // filter out profiles requiring an upgrade that hasn't been taken
-                                                                    .filter(profile => {
-                                                                        // Does any upgrade match this profile name?
-                                                                        const needsUpgrade = (u.upgrades || []).some(
-                                                                            up => up.name.replace(/\[|\]/g, "") === profile.name
-                                                                        );
-                                                                        if (!needsUpgrade) return true; // base profile → always show
-                                                                        return u.chosenUpgrades.some(
-                                                                            cu => cu.name.replace(/\[|\]/g, "") === profile.name && cu.count > 0
-                                                                        );
-
-                                                                    })
-                                                                    .map((profile, i) => {
-                                                                        let modifiedProfile = { ...profile };
-                                                                        // apply statlineModifiers from chosen upgrades
-                                                                        (u.chosenUpgrades || []).forEach(up => {
-                                                                            if (up.statlineModifiers) {
-                                                                                modifiedProfile = { ...modifiedProfile, ...up.statlineModifiers };
-                                                                            }
-                                                                        });
-
-                                                                        return (
-                                                                            <tr key={i}>
-                                                                                <td className="unit-name">{modifiedProfile.name}</td>
-                                                                                {["WS", "BS", "S", "T", "W", "I", "A", "Ld", "Sv"].map(stat => (
-                                                                                    <td key={stat}>{modifiedProfile[stat]}</td>
-                                                                                ))}
-                                                                            </tr>
-                                                                        );
-                                                                    })}
-                                                            </tbody>
-                                                        </table>
-                                                    )
-                                            )}
-
-                                            {/* Rules */}
-                                            {u.rules?.length > 0 && (
-                                                <>
-                                                    <h4>Rules:</h4>
-                                                    <div style={{
-                                                        display:
-                                                            "inline"
-                                                    }}>
-                                                        <div className="army-panel">
-                                                            {renderWithReferences(u.rules.join(", "), registry,
-                                                                openRuleModal)}
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
-
-                                            {finalWargear.length > 0 && (
-                                                <>
-                                                    <h4>Wargear:</h4>
-                                                    <div style={{ display: "inline" }}>
-                                                        <div className="army-panel">
-                                                            {renderWithReferences(finalWargear.join(", "), registry, openRuleModal)}
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
-
-
-                                        </div>
-                                    )
-
-                                })}
-                            </div>
-                        );
-                    })}
+                    <RightPanel
+                        armyState={armyState}
+                        registry={registry}
+                        openRuleModal={openRuleModal}
+                        renderWithReferences={renderWithReferences}
+                    />
                 </div>
-
-
 
 
                 {/* Save Dialog */}
@@ -1307,21 +1204,40 @@ export default function Listicles({ saved }) {
                                     <button
                                         onClick={() => {
                                             if (!saveName) return;
-                                            // Load existing saved lists from localStorage
-                                            const savedLists = JSON.parse(localStorage.getItem("savedLists") || "[]");
-                                            savedLists.push({
+
+                                            // Get the current faction ID from the URL (useParams)
+                                            if (!factionId) {
+                                                alert("Cannot save: missing faction ID.");
+                                                return;
+                                            }
+
+                                            const newList = {
                                                 name: saveName,
                                                 system: faction.system || faction.name,
-                                                army,
-                                            });
-                                            localStorage.setItem("savedLists", JSON.stringify(savedLists));
+                                                factionId,        // 👈 important for reloading faction later
+                                                army,             // current army state
+                                            };
+
+                                            // Load existing saved lists from localStorage
+                                            const savedLists = JSON.parse(localStorage.getItem("savedLists") || "[]");
+
+                                            // Add new list
+                                            const updatedLists = [...savedLists, newList];
+
+                                            // Save both to localStorage and state
+                                            localStorage.setItem("savedLists", JSON.stringify(updatedLists));
+
+                                            setSavedLists(updatedLists); // update state if you have it
                                             setShowSaveDialog(false);
                                             setSaveName("");
+
                                             alert("Army saved!");
                                         }}
                                     >
                                         Save
                                     </button>
+
+
                                 </div>
                             </div>
                         </div>
@@ -1343,8 +1259,8 @@ export default function Listicles({ saved }) {
                     <button
                         key={key}
                         onClick={() => {
-                            setActivePanel(key);
-                            scrollToPanel(panelRefs[key], key);
+                            if (key === "reference") openRightPanel(); // compute state
+                            else goToPanel(key);
                         }}
                         className={activePanel === key ? "page-btn active" : "page-btn"}
                     >

@@ -45,7 +45,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/army-saved/:listIndex" element={<Listicles saved={true} />} />
+        <Route path="/army-saved/:listIndex" element={<Listicles saved={true} savedLists={savedLists} />} />
         <Route
           path="/"
           element={

@@ -6,9 +6,37 @@
         name: "xxx",
         category: "HQ Troops Elites Fast Attack Heavy Support",
         modelType: "Vehicle",
-        basePoints: 1,
-        minModels: 1,
-        maxModels: 1,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "This unit is made up of 5–10 models in any combination of Dark Eldar and Incubi.",
+                minTotal: 5,
+                maxTotal: 10,
+                entries: [
+                    {
+                        name: "Dark Eldar",
+                        basePoints: 8,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Splinter Rifle]"]
+                    },
+                ]
+            },
+            {
+                // a *separate* add-on model that doesn’t count toward the 5–10 total
+                type: "attachment",
+                compText: "May be joined by:",
+                minTotal: 0,
+                maxTotal: 1,
+                entries: [
+                    {
+                        name: "Haemonculus",
+                        basePoints: 35,
+                        wargearEach: ["[Flamer]", "[Poisoned Blades]", "[Krak Grenades]"]
+                    }
+                ]
+            }
+        ],
         unitLimit: 1,
         ignoreSlot: true,---------------<--DELETE THIS AS NECESSARY----------
 
@@ -58,42 +86,13 @@
             
             
             
-            
-            
-        -------------------------------VARIANT STATLINE SET-------------------------------------
-
-        variants: {
-            profile: {
-                label: "Hero Type",
-                options: [
-                    {
-                        name: "Leader",
-                        statline: { WS: 4, BS: 4, S: 4, T: 4, W: 1, I: 4, A: 2, Ld: 9, Sv: "3+" },
-                        extraPoints: 0
-                    },
-                    {
-                        name: "Commander",
-                        statline: { WS: 5, BS: 5, S: 4, T: 4, W: 2, I: 5, A: 3, Ld: 9, Sv: "3+" },
-                        extraPoints: 15
-                    },
-                    {
-                        name: "Force Commander",
-                        statline: { WS: 5, BS: 5, S: 4, T: 4, W: 3, I: 5, A: 3, Ld: 10, Sv: "3+" },
-                        extraPoints: 30
-                    }
-                ]
-            },
-
-        },
-
-
 
 
 
 ---------------------------------BASE PROFILE STUFF--------------------------
 
         rules: ['[XXX]', '[XXX]'],
-        wargear: ["[XXX]", "[XXX]"],
+        wargearMain: ["[XXX]", "[XXX]"],
 
 
 

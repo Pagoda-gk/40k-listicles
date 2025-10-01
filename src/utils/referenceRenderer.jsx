@@ -45,6 +45,7 @@ export function renderWithReferences(text, registry, onSelectRule) {
     parts.push(text.substring(lastIndex));
   }
 
-  return <>{parts}</>;
+  return <>{parts.map((part, idx) => React.isValidElement(part) ? React.cloneElement(part, { key: idx }) : <span key={idx}>{part}</span>)}</>;
+
 }
 
