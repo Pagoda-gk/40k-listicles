@@ -4,10 +4,25 @@ import React from 'react';
 import factions from "./data/factions";
 import Listicles from "./ArmyBuilder";
 import './index.css';
+import { useRegisterSW } from "virtual:pwa-register/react";
 
 
 
 export default function App() {
+  const { needRefresh, updateServiceWorker } = useRegisterSW();
+  const [justUpdated, setJustUpdated] = useState(false);
+
+  useEffect(() => {
+    if (needRefresh) {
+      // Force update + reload
+      updateServiceWorker(true);
+      setJustUpdated(true);
+      // Optionally hide after a few seconds
+      setTimeout(() => setJustUpdated(false), 4000);
+    }
+
+  }, [needRefresh, updateServiceWorker]);
+
   const [openSections, setOpenSections] = useState([]);
   const [savedLists, setSavedLists] = useState([]);
 
@@ -102,6 +117,13 @@ export default function App() {
                   </div>
                 );
               })}
+
+              {/* 🔹 Update Popup */}
+              {justUpdated && (
+                <div className="fixed bottom-4 right-4 bg-green-600 text-white p-3 rounded-lg shadow-lg">
+                  ✅ App updated to the latest version
+                </div>
+              )}
             </div>
           }
         />

@@ -8,6 +8,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',   // keeps cache fresh
+      workbox: {
+        clientsClaim: true, // new SW takes control of open pages right away
+        skipWaiting: true,  // skip waiting phase → update immediately
+      },
       manifest: {
         name: "Listicles Army List Builder",
         short_name: "Listicles",
