@@ -176,11 +176,39 @@ export const units = [
         ]
     },
     {
-        name: "Warp Spider",
+        name: "Warp Spiders",
         category: "Elites",
-        basePoints: 18,
-        minModels: 5,
-        maxModels: 10,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "Between 5 and 10 Warp Spiders.",
+                minTotal: 5,
+                maxTotal: 10,
+                entries: [
+                    {
+                        name: "Warp Spider",
+                        basePoints: 18,
+                        min: 5,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Death Spinner]"],
+                    },
+                ]
+            },
+            {
+                // a *separate* add-on model that doesn’t count toward the 5–10 total
+                type: "attachment",
+                compText: "May be joined by an:",
+                minTotal: 0,
+                maxTotal: 1,
+                entries: [
+                    {
+                        name: "Exarch",
+                        basePoints: 30,
+                        wargearEach: ["[Death Spinner]"]
+                    }
+                ]
+            }
+        ],
         statline: [
             {
                 name: "Warp Spider",
@@ -207,24 +235,46 @@ export const units = [
                 Sv: "3+",
             },
         ],
-        wargear: ["[Death Spinner]", "[Jump Pack]"],
+        wargearMain: ["[Jump Pack]"],
         upgrades: [
-            {
-                type: "single", name: "[Exarch]", points: 30,
-                children: [
-                    { type: "single", name: "[Double Death Spinner]", points: 10, wargear: ["[Double Death Spinner]"] },
-                ],
-            },
-
+            { type: "single", upgradeText: "The Exarch may take a", user: "Exarch", name: "[Double Death Spinner]", points: 10, wargearEach: ["[Double Death Spinner]"], removes: ["[Death Spinner]"] },
         ]
     },
 
     {
         name: "Striking Scorpions",
         category: "Elites",
-        basePoints: 18,
-        minModels: 5,
-        maxModels: 10,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "Between 5 and 10 Striking Scorpions.",
+                minTotal: 5,
+                maxTotal: 10,
+                entries: [
+                    {
+                        name: "Striking Scorpion",
+                        basePoints: 18,
+                        min: 5,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Shuriken Pistol]", "[Chainsword]"],
+                    },
+                ]
+            },
+            {
+                // a *separate* add-on model that doesn’t count toward the 5–10 total
+                type: "attachment",
+                compText: "May be joined by an:",
+                minTotal: 0,
+                maxTotal: 1,
+                entries: [
+                    {
+                        name: "Exarch",
+                        basePoints: 30,
+                        wargearEach: ["[Shuriken Pistol]", "[Chainsword]"]
+                    }
+                ]
+            }
+        ],
         statline: [
             {
                 name: "Scorpion",
@@ -251,23 +301,47 @@ export const units = [
                 Sv: "3+",
             },
         ],
-        wargear: ["[Shuriken Pistol]", "[Chainsword]", "[Mandiblaster]"],
+        wargearMain: ["[Mandiblaster]"],
         upgrades: [
-            {
-                type: "single", name: "[Exarch]", points: 30,
-                children: [
-                    { type: "single", name: "[Power Fist]", points: 8, wargear: ["[Power Fist]"], statlineModifiers: { S: 9 } },
-                ],
-            },
-            { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]" },
+            { type: "single", upgradeText: "The Exarch may take a", user: "Exarch", name: "[Power Fist]", points: 8, wargearEach: ["[Power Fist]"] },
+            { upgradeText: "The unit may be mounted in a", type: "single", name: "Wave Serpent", wargearMain: "Wave Serpent [Dedicated Transport]" },
+
         ]
     },
     {
         name: "Howling Banshees",
         category: "Elites",
-        basePoints: 16,
-        minModels: 5,
-        maxModels: 10,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "Between 5 and 10 Howling Banshees.",
+                minTotal: 5,
+                maxTotal: 10,
+                entries: [
+                    {
+                        name: "Banshee",
+                        basePoints: 16,
+                        min: 5,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Shuriken Pistol]", "[Power Weapon]"],
+                    },
+                ]
+            },
+            {
+                // a *separate* add-on model that doesn’t count toward the 5–10 total
+                type: "attachment",
+                compText: "May be joined by an:",
+                minTotal: 0,
+                maxTotal: 1,
+                entries: [
+                    {
+                        name: "Exarch",
+                        basePoints: 32,
+                        wargearEach: ["[Shuriken Pistol]", "[Power Weapon]"]
+                    }
+                ]
+            }
+        ],
         statline: [
             {
                 name: "Banshee",
@@ -294,25 +368,45 @@ export const units = [
                 Sv: "3+",
             },
         ],
-        wargear: ["[Shuriken Pistol]", "[Power Weapon]", "[Banshee Mask]"],
+        wargearMain: ["[Banshee Mask]"],
         upgrades: [
-            {
-                type: "single", name: "[Exarch]", points: 32,
-                children: [
-                    { type: "single", name: "[Power Fist]", points: 8, wargear: ["[Power Fist]"] },
-                ],
-            },
-            { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]" },
-
-
+            { upgradeText: "The unit may be mounted in a", type: "single", name: "Wave Serpent", wargearMain: "Wave Serpent [Dedicated Transport]" },
         ]
     },
     {
         name: "Fire Dragons",
         category: "Elites",
-        basePoints: 17,
-        minModels: 5,
-        maxModels: 10,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "Between 5 and 10 Warp Spiders.",
+                minTotal: 5,
+                maxTotal: 10,
+                entries: [
+                    {
+                        name: "Fire Dragon",
+                        basePoints: 17,
+                        min: 5,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Fusion Gun]", "[Melta Bombs]"],
+                    },
+                ]
+            },
+            {
+                // a *separate* add-on model that doesn’t count toward the 5–10 total
+                type: "attachment",
+                compText: "May be joined by an:",
+                minTotal: 0,
+                maxTotal: 1,
+                entries: [
+                    {
+                        name: "Exarch",
+                        basePoints: 28,
+                        wargearEach: ["[Fusion Gun]", "[Melta Bombs]"]
+                    }
+                ]
+            }
+        ],
         statline: [
             {
                 name: "Fire Dragon",
@@ -341,98 +435,87 @@ export const units = [
         ],
         wargear: ["[Fusion Gun]", "[Melta Bombs]"],
         upgrades: [
-            {
-                type: "single", name: "[Exarch]", points: 28,
-                children: [
-                    { upgradeText: "May exchange fusion gun for", type: "single", name: "[Meltagun]", points: 6, wargear: ["[Meltagun]"] },
-                ],
-            },
-            { upgradeText: "The unit may be mounted in a", type: "single", name: "[Wave Serpent]" },
-
-
+            { type: "single", upgradeText: "The Exarch may take a", user: "Exarch", upgradeText: "May exchange fusion gun for", type: "single", name: "[Meltagun]", points: 6, wargear: ["[Meltagun]"] },
+            { upgradeText: "The unit may be mounted in a", type: "single", name: "Wave Serpent", wargearMain: "Wave Serpent [Dedicated Transport]" },
         ]
     },
 
-
-
-
     {
-        name: "Warrior Squad",
-        category: "Troops",
-        basePoints: 8,
-        minModels: 10,
-        maxModels: 20,
-        statline: [
+        name: "Wraithguard",
+        category: "Elites",
+        unitComp: [
             {
-                name: "Dark Eldar",
-                WS: 4,
-                BS: 4,
-                S: 3,
-                T: 3,
-                W: 1,
-                I: 5,
-                A: 1,
-                Ld: 8,
-                Sv: "5+",
-            },
-            {
-                name: "Sybarite",
-                WS: 4,
-                BS: 4,
-                S: 3,
-                T: 3,
-                W: 1,
-                I: 5,
-                A: 2,
-                Ld: 8,
-                Sv: "5+",
-            }
-        ],
-        rules: [""],
-        wargear: ["[Splinter Rifle]"],
-        upgrades: [
-            {
-                type: "grouped",
-                name: "Warrior Special Weapons",
-                maxPer: 2,
-                options: [
-                    { name: "[Splinter Cannon]", points: 10, wargear: ["[Splinter Cannon]"] },
-                    { name: "[Lascannon]", points: 20, wargear: ["[Lascannon]"] },
-                ]
-            },
-            {
-                type: "single", name: "Sybarite", points: 8,
-                children: [
+                type: "corePool",
+                compText: "Between 5 and 10 Wraithguard.",
+                minTotal: 5,
+                maxTotal: 10,
+                entries: [
                     {
-                        type: "grouped",
-                        name: "wych Special Weapons",
-                        maxPer: 1,
-                        options: [
-                            { type: "single", name: "[Close Combat Weapon]", points: 1, wargear: ["[Close Combat Weapon]"] },
-                            { type: "single", name: "[Power Weapon]", points: 10, wargear: ["[Power Weapon]"] },
-                            { type: "single", name: "[Splinter Pistol]", points: 1, wargear: ["[Splinter Pistol]"] },
-                            { type: "single", name: "[Splinter Rifle]", points: 2, wargear: ["[Splinter Rifle]"] },
-                        ]
+                        name: "Wraithguard",
+                        basePoints: 40,
+                        min: 5,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Wraithcannon]"],
                     },
-                    { type: "single", name: "[Splinter Pistol] and [Close Combat Weapon]", points: 0, wargear: ["[Splinter Pistol]", "[Close Combat Weapon]"] },
-
-                ],
-
+                ]
             },
-            { type: "single", name: "[Raider]", points: 0 },
-
+        ],
+        statline: [
+            {
+                name: "Wraithguard",
+                WS: 4,
+                BS: 4,
+                S: 5,
+                T: 5,
+                W: 1,
+                I: 4,
+                A: 1,
+                Ld: 10,
+                Sv: "3+",
+            },
+        ],
+        upgrades: [
+            { upgradeText: "If the unit numbers 5 Wraithguard and up to 1 Warlock it may be mounted in a", type: "single", name: "Wave Serpent", wargearMain: ["Wave Serpent [Dedicated Transport]"] },
         ],
 
     },
     {
-        name: "Raider Squad",
+        name: "Dire Avengers",
         category: "Troops",
-        basePoints: 8,
-        minModels: 5,
-        maxModels: 10,
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "Between 5 and 10 Dire Avengers.",
+                minTotal: 5,
+                maxTotal: 10,
+                entries: [
+                    {
+                        name: "Dire Avenger",
+                        basePoints: 12,
+                        min: 5,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Shuriken Catapult]"],
+                    },
+                ]
+            },
+            {
+                // a *separate* add-on model that doesn’t count toward the 5–10 total
+                type: "attachment",
+                compText: "May be joined by an:",
+                minTotal: 0,
+                maxTotal: 1,
+                entries: [
+                    {
+                        name: "Exarch",
+                        basePoints: 26,
+                        wargearEach: ["[Shuriken Catapult]"]
+                    }
+                ]
+            }
+        ],
         statline: [
             {
-                name: "Dark Eldar",
+                name: "Dire Avenger",
                 WS: 4,
                 BS: 4,
                 S: 3,
@@ -440,84 +523,200 @@ export const units = [
                 W: 1,
                 I: 5,
                 A: 1,
+                Ld: 9,
+                Sv: "4+",
+            },
+            {
+                name: "Exarch",
+                WS: 5,
+                BS: 5,
+                S: 3,
+                T: 3,
+                W: 1,
+                I: 6,
+                A: 2,
+                Ld: 9,
+                Sv: "3+",
+            },
+        ],
+        upgrades: [
+            { type: "single", upgradeText: "The Exarch may take a", user: "Exarch", name: "[Shuriken Pistol] and [Power Weapon]", points: 3, wargearEach: ["[[Shuriken Pistol]", "[Power Weapon]"] },
+            { upgradeText: "The unit may be mounted in a", type: "single", name: "Wave Serpent", wargearMain: ["Wave Serpent [Dedicated Transport]"] },
+
+        ],
+    },
+    {
+        name: "Guardian Defender Squad",
+        category: "Troops",
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "Between 5 and 20 Guardian Defenders.",
+                minTotal: 5,
+                maxTotal: 20,
+                entries: [
+                    {
+                        name: "Guardian Defender",
+                        basePoints: 8,
+                        min: 5,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Shuriken Catapult]"],
+                    },
+                ]
+            },
+        ],
+        statline: [
+            {
+                name: "Guardian Defender",
+                WS: 3,
+                BS: 3,
+                S: 3,
+                T: 3,
+                W: 1,
+                I: 4,
+                A: 1,
                 Ld: 8,
                 Sv: "5+",
             },
+        ],
+        upgrades: [
             {
-                name: "Sybarite",
-                WS: 4,
+                type: "grouped",
+                name: "guardian grav platform",
+                maxPer: 1,
+                upgradeText: `May be joined by a heavy weapons platform.
+                
+                The heavy weapons platform has two Guardians as crew.If one crewman is killed the platform operates as normal, if both crew are killed the platform is useless(the platform itself can't be hit). The heavy weapon platform can move and fire.`,
+                options: [
+                    { type: "single", name: "[Shuriken Cannon]", points: 35, wargearMain: ["[Shuriken Cannon]"] },
+                    { type: "single", name: "[Scatter Laser]", points: 40, wargearMain: ["[Scatter Laser]"] },
+                    { type: "single", name: "[Missile Launcher]", points: 45, wargearMain: ["[Missile Launcher]"] },
+                    { type: "single", name: "[Lascannon]", points: 50, wargearMain: ["[Lascannon]"] },
+                    { type: "single", name: "[Plasma Cannon]", points: 50, wargearMain: ["[Plasma Cannon]"] },
+                ]
+            },
+            { user: "Guardian Defender", type: "perModel", name: "[Frag Grenades]", points: 1, wargearMain: ["[Frag Grenades]"] },
+            { upgradeText: "Unless accompanied by a Weapons Platform, the unit may be mounted in a", type: "single", name: "Wave Serpent", wargearMain: ["Wave Serpent [Dedicated Transport]"] },
+
+        ],
+    },
+    {
+        name: "Guardian Storm Squad",
+        category: "Troops",
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "Between 5 and 20 Guardians.",
+                minTotal: 5,
+                maxTotal: 20,
+                entries: [
+                    {
+                        name: "Guardian Storm",
+                        basePoints: 8,
+                        min: 5,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Shuriken Pistol]", "[Close Combat Weapon]"],
+                    },
+                ]
+            },
+        ],
+        statline: [
+            {
+                name: "Guardian Storm",
+                WS: 3,
+                BS: 3,
+                S: 3,
+                T: 3,
+                W: 1,
+                I: 4,
+                A: 1,
+                Ld: 8,
+                Sv: "5+",
+            },
+        ],
+        upgrades: [
+            { type: "perModel", name: "[Frag Grenades]", points: 1, wargearMain: ["[Frag Grenades]"] },
+            { type: "perModel", name: "[Krak Grenades]", points: 2, wargearMain: ["[Krak Grenades]"] },
+            { type: "perModel", name: "[Melta Bombs]", points: 5, wargearMain: ["[Melta Bombs]"] },
+            { upgradeText: "If there are 10 or fewer models, the unit may be mounted in a", type: "single", name: "Wave Serpent", wargearMain: ["Wave Serpent [Dedicated Transport]"] },
+        ],
+    },
+    {
+        name: "Rangers",
+        category: "Troops",
+        unitComp: [
+            {
+                type: "corePool",
+                compText: "Between 3 and 10 Guardians.",
+                minTotal: 3,
+                maxTotal: 10,
+                entries: [
+                    {
+                        name: "Ranger",
+                        basePoints: 13,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Eldar Long Rifle]", "[Shuriken Pistol]"],
+                    },
+                ]
+            },
+        ],
+        statline: [
+            {
+                name: "Ranger",
+                WS: 3,
                 BS: 4,
                 S: 3,
                 T: 3,
                 W: 1,
-                I: 5,
-                A: 2,
+                I: 4,
+                A: 1,
                 Ld: 8,
                 Sv: "5+",
-            }
-        ],
-        rules: ["The unit is mounted on a Raider"],
-        wargear: ["[Splinter Rifle]"],
-        upgrades: [
-            {
-                type: "grouped",
-                name: "Raider Special Weapons",
-                maxPer: 2,
-                options: [
-                    { type: "limited", name: "[Shredder]", points: 10, maxPer: 1, wargear: ["[Shredder]"] },
-                ]
-            },
-            {
-                type: "grouped",
-                name: "Raider Heavy Weapons",
-                maxPer: 1,
-                options: [
-                    { name: "[Splinter Cannon]", points: 10, wargear: ["[Splinter Cannon]"] },
-                    { name: "[Lascannon]", points: 10, wargear: ["[Lascannon]"] },
-                ]
-            },
-            {
-                type: "single", name: "Sybarite", points: 6,
-                children: [
-                    {
-                        type: "grouped",
-                        name: "wych Special Weapons",
-                        maxPer: 1,
-                        options: [
-                            { type: "single", name: "[Close Combat Weapon]", points: 1, wargear: ["[Close Combat Weapon]"] },
-                            { type: "single", name: "[Power Weapon]", points: 10, wargear: ["[Power Weapon]"] },
-                            { type: "single", name: "[Splinter Pistol]", points: 1, wargear: ["[Splinter Pistol]"] },
-                            { type: "single", name: "[Splinter Rifle]", points: 2, wargear: ["[Splinter Rifle]"] },
-                        ]
-                    }
-                ],
-
             },
         ],
-
+        rules: ["[Infiltrators]"],
     },
+
+
+
+
+
     {
-        name: "Raider",
+        name: "Wave Serpent",
         category: "Troops",
         modelType: "Vehicle",
-        basePoints: 55,
-        minModels: 1,
-        maxModels: 1,
         ignoreSlot: true,
         isVehicle: true,
-        statline: [
+         unitComp: [
             {
-                name: "Raider",
-                armourFront: 10,
-                armourSide: 10,
-                armourRear: 10,
-                BS: 4,
+                type: "corePool",
+                compText: "One Wave Serpent.",
+                minTotal: 1,
+                maxTotal: 1,
+                entries: [
+                    {
+                        name: "Wave Serpent",
+                        basePoints: 110,
+                        min: 0,          // each entry can have its own min/max
+                        max: null,       // null means “no explicit cap except the pool”
+                        wargearEach: ["[Twin-Linked] [Shuriken Catapult]", "[Twin-Linked] [Shuriken Cannon]"],
+                    },
+                ]
             },
         ],
-        rules: ["[Skimmer]", "[Fast]", "[Open-Topped]", "[Transport] (10)"],
-        wargear: ["[Lascannon]"],
+        statline: [
+            {
+                name: "Wave Serpent",
+                armourFront: 14,
+                armourSide: 14,
+                armourRear: 10,
+                BS: 3,
+            },
+        ],
+        rules: ["[Transport]"],
         upgrades: [
-            { type: "single", name: "[Plasma Cannon]", points: 0, wargear: ["[Plasma Cannon]"], removes: ["[Lascannon]"] },
+            { upgradeText: `May switch Twin-Linked Shuriken Catapult for`, user: "Wave Serpent", type: "single", name: "[Shuriken Cannon]", points: 20, wargearEach: ["[Shuriken Cannon]"], removes: ["[Twin-Linked] [Shuriken Catapult]"] },
         ],
 
     },

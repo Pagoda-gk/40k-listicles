@@ -75,8 +75,7 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                 // --- Single / perModel / limited / grouped logic ---
                 switch (up.type) {
 
-                    case "single":
-                    case "perModel": {
+                    case "single": {
                         const prefix = up.upgradeText
                             ? renderWithReferences(up.upgradeText, registry, openRuleModal)
                             : "May take";
@@ -100,6 +99,48 @@ function UpgradeOptions({ unit, upgrades, onToggle, registry, openRuleModal }) {
                             </div>
                         );
                     }
+
+                    case "perModel": {
+                        const prefix = up.upgradeText
+                            ? renderWithReferences(up.upgradeText, registry, openRuleModal)
+                            : "May take";
+
+                        const perModelCost = getUpgradeCost(up, unit.selectedVariants?.profile?.name);
+                        const current = unit.chosenUpgrades.find(sel => sel.name === up.name);
+                        const isSelected = current?.count > 0; // ✅ use current, not up.count
+
+                        // Compute model count safely
+                        const modelCount = unit.modelCount ?? unit.unitComp?.flatMap(pool => pool.entries)
+                            .reduce((sum, e) => sum + (e.count ?? e.min ?? 0), 0) ?? 0;
+
+                        const totalCost = modelCount * perModelCost;
+
+
+                        return (
+                            <div key={up.name} className="upgrade-row">
+                                <span className="upgrade-label">
+                                    {prefix} {label} for {perModelCost} pts each
+                                    {isSelected && <> (total +{totalCost} pts)</>}
+                                </span>
+                                <div className="upgrade-control">
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        disabled={up.forced || disabledByUser || modelCount === 0}
+                                        onChange={() =>
+                                            onToggle(unit.id, {
+                                                ...up,
+                                                count: isSelected ? 0 : modelCount,
+                                            })
+                                        }
+                                        className="upgrade-input-checkbox"
+                                    />
+                                </div>
+                            </div>
+                        );
+                    }
+
+
 
                     case "limited": {
                         const modelCount = getUnitModelCount(unit);
@@ -281,8 +322,8 @@ export default function Listicles({ saved }) {
     const [savedLists, setSavedLists] = useState(() => {
         return JSON.parse(localStorage.getItem("savedLists") || "[]");
     });
-    
-    
+
+
 
 
     const APP_NAME = "Listicles";
@@ -485,12 +526,13 @@ export default function Listicles({ saved }) {
         // points from upgrades
         const upgradePoints = (u.chosenUpgrades || []).reduce((s, up) => {
             const cost = getUpgradeCost(up, u.selectedVariants?.profile);
-            if (up.type === "perModel") return s + cost * (u.count || 0);
+            if (up.type === "perModel") return s + cost * (up.count || 0); // ✅ use up.count
             return s + cost * (up.count || 1);
         }, 0);
 
         return sum + unitCompPoints + upgradePoints;
     }, 0);
+
 
 
     const [selectedConditional, setSelectedConditional] = useState(null);
@@ -747,11 +789,12 @@ export default function Listicles({ saved }) {
                                     }, 0) ?? 0;
                                     const upgradePoints = (u.chosenUpgrades || []).reduce((s, up) => {
                                         const cost = getUpgradeCost(up, u.selectedVariants?.profile);
-                                        if (up.type === "perModel") return s + cost * (u.count || 0);
+                                        if (up.type === "perModel") return s + cost * (up.count || 0); // ✅ use up.count
                                         return s + cost * (up.count || 1);
                                     }, 0);
 
                                     const totalUnitPoints = unitCompPoints + upgradePoints;
+
 
 
 

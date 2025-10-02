@@ -27,7 +27,7 @@ export const wargear = [
         description: "12\" Str 4, AP 5, [Assault] 2.",
     },
     {
-        name: "Shuriken cannon",
+        name: "Shuriken Cannon",
         description: "24\" Str 6, AP 5, [Heavy] 3.",
     },
     {
@@ -88,6 +88,14 @@ export const wargear = [
     {
         name: "Lascannon",
         description: "48\" Str 8, AP 2, [Heavy] 1.",
+    },
+    {
+        name: "Wraithcannon",
+        description: `12" Str 8, AP 1, [Assault] 1`,
+    },
+       {
+        name: "Eldar Long Rifle",
+        description: `36" Str X, AP 6, [Heavy] 1, [Sniper]`,
     },
 
     //Wargear
